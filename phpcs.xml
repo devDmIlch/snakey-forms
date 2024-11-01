@@ -28,8 +28,10 @@
 	<rule ref="WordPress">
 		<exclude name="Generic.CodeAnalysis.UnusedFunctionParameter.Found"/>
 		<exclude name="Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed"/>
-		<exclude name="Universal.Arrays.DisallowShortArraySyntax.Found"/>
-		<exclude name="Universal.Operators.DisallowShortTernary.Found"/>
+		<!-- Loosen array restrictions -->
+		<exclude name="Generic.Arrays.DisallowShortArraySyntax.Found"/>
+		<!-- Allow ternary -->
+		<exclude name="Generic.Operators.DisallowShortTernary.Found"/>
 		<!-- Rules to follow PSR4 -->
 		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
 		<exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
