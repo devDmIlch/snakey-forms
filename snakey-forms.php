@@ -6,4 +6,7 @@
  * Author: Dmitrii Ilchenko
  * Version: 0.0.1
  * Author URI: https://www.linkedin.com/in/dm-ilch-dev/
+ *
+ * @package snakey-forms/plugin
+ * @since 0.0.1
  */
