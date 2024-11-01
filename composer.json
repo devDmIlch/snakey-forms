@@ -12,9 +12,7 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": "^7.2",
-    "ext-json": "*",
-    "psr/http-message": "1.1"
+    "php": "^7.2"
   },
   "require-dev": {
     "roave/security-advisories": "dev-latest",
@@ -25,7 +23,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Svitmov\\": "src/php"
+      "SnakeyForms\\": "src/php"
     }
   },
   "scripts": {
