@@ -16,18 +16,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use SnakeyForms\PostTypes\SnakeyForm;
-
 // Initialize global values.
 const SNKFORMS_PREFIX = 'snkfrm';
 
 // Plugin path constants.
-const SNKFORMS_THEME_PATH     = __DIR__;
-const SNKFORMS_THEME_PHP_PATH = SNKFORMS_THEME_PATH . '/src/php';
-const SNKFORMS_CORE_PATH      = SNKFORMS_THEME_PHP_PATH . '/Core';
+const SNKFORMS_PLUGIN_PATH      = __DIR__;
+const SNKFORMS_PLUGIN_PHP_PATH  = SNKFORMS_PLUGIN_PATH . '/src/php';
+const SNKFORMS_PLUGIN_TEMPLATES = SNKFORMS_PLUGIN_PATH . '/templates/';
 
 // Set up dependencies.
-require_once SNKFORMS_THEME_PATH . '/vendor/autoload.php';
+require_once SNKFORMS_PLUGIN_PATH . '/vendor/autoload.php';
 
 // Initialize if there were no collisions found.
 if ( ! class_exists( 'SnakeyForms' ) ) {
