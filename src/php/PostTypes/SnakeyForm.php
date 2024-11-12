@@ -92,7 +92,9 @@ class SnakeyForm {
 	 * @param \WP_Post $post_obj Edited post object.
 	 */
 	public function render_form_editor_content( \WP_Post $post_obj ): void {
-		// TODO: Initialize form editor.
+		$form_editor_obj = new \SnakeyForms\FormEditor\FormEditor();
+		$form_editor_obj->init();
+		$form_editor_obj->display_form_editor_content();
 	}
 }
 
