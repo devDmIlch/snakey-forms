@@ -19,7 +19,7 @@ class FormEditor {
 	// Private Fields.
 
 	/**
-	 * Array of available fields.
+	 * Array of registered fields.
 	 *
 	 * @var I_FormField[] $r_fields
 	 */
@@ -28,9 +28,35 @@ class FormEditor {
 	/**
 	 * Array of existing form fields.
 	 *
-	 * @var array $form_fields
+	 * @var array $f_fields
 	 */
-	private $form_fields;
+	private $f_fields;
+
+
+	// Protected Properties.
+
+	/**
+	 * Returns (and initializes) an array of registered fields.
+	 *
+	 * @return I_FormField[] Array of registered fields.
+	 */
+	protected function get_r_fields(): array {
+		// Get the list of registered fields.
+		if ( ! isset( $this->r_fields ) ) {
+			$this->r_fields = apply_filters( SNKFORMS_PREFIX . '_registered_fields', $this->register_default_fields() );
+		}
+
+		return $this->r_fields;
+	}
+
+	/**
+	 * Returns (and initializes) an array of form fields.
+	 *
+	 * @return array Array of form fields.
+	 */
+	protected function get_f_fields(): array {
+		return $this->f_fields;
+	}
 
 
 	// Initialization Methods.
@@ -39,23 +65,7 @@ class FormEditor {
 	 * Initializes instance of the class.
 	 */
 	public function init(): void {
-		// Get the list of registered fields.
-		$this->r_fields = apply_filters( SNKFORMS_PREFIX . '_registered_fields', $this->register_default_fields() );
-
-		// TODO: Test data change with the real values later.
-		$test_data = [
-			[
-				'type'  => 'text',
-				'ref'   => null,
-				'state' => [
-					'name' => 'field_text',
-					// Populate state with settings.
-				],
-			],
-		];
-		// Prototype data of the field.
-		$this->form_fields = $this->parse_selected_field_states( $test_data, $this->r_fields );
-
+		$this->get_r_fields();
 	}
 
 
@@ -109,18 +119,54 @@ class FormEditor {
 	// Public Methods.
 
 	/**
-	 * Displays form content for post editor.
+	 * Renders invisible input field for saving form content.
 	 */
-	public function display_form_editor_content(): void {
-		foreach ( $this->form_fields as $field_data ) {
-			$field_data['ref']->render_field_content( $field_data['state'] );
-		}
+	public function render_input(): void {
+		load_template( SNKFORMS_PLUGIN_TEMPLATES . 'admin/form-input.php', false );
+	}
+
+	/**
+	 * Displays form content for post editor.
+	 *
+	 * @param string|null $content Existing content of the form.
+	 */
+	public function display_form_editor_content( ?string $content ): void {
+		// Parse selected fields data.
+		$content = empty( $content ) ? [] : json_decode( $content, true );
+
+		$template_args = array_map(
+			function ( $field ) {
+				return [
+					'template' => $field['ref']->get_field_proto_template(),
+					'state'    => $field['state'],
+					'props'    => wp_json_encode(
+						[
+							'type'  => $field['type'],
+							'state' => $field['state'],
+						]
+					),
+				];
+			},
+			$this->parse_selected_field_states( $content, $this->r_fields )
+		);
+
+		load_template( SNKFORMS_PLUGIN_TEMPLATES . 'sections/form-content.php', false, [ 'fields' => $template_args ] );
 	}
 
 	/**
 	 * Displays selector area with possible fields.
 	 */
 	public function display_field_shop(): void {
+		$template_args = array_map(
+			function ( $field ) {
+				return [
+					'name'     => $field->get_slug(),
+					'template' => $field->get_field_preview_template(),
+				];
+			},
+			$this->get_r_fields()
+		);
 
+		load_template( SNKFORMS_PLUGIN_TEMPLATES . 'sections/field-shop.php', false, [ 'fields' => $template_args ] );
 	}
 }

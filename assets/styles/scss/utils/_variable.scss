@@ -1,0 +1,31 @@
+
+// Colors.
+$black: #333;
+$gray: #aaa;
+$lgray: #cecece;
+$white: #fff;
+
+// Standardized Distances.
+$dist-step: 3px;
+$dist-tiny:   $dist-step;
+$dist-small:  $dist-step * 2;
+$dist-medium: $dist-step * 4;
+$dist-large:  $dist-step * 8;
+
+$dist-sub-step: $dist-step / 2;
+
+// Border Styles.
+$border-simple: 1px solid $gray;
+$border-transparent: 1px solid transparent;
+
+// Border Radius Values.
+$radius-small: $dist-tiny;
+
+// Box Shadows.
+$shadow-simple: 0 0 8px -4px $gray;
+
+// Transition Time.
+$time-fast: .2s;
+$time-med:  .4s;
+$time-slow: .6s;
+

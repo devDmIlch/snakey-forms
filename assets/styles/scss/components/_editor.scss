@@ -1,0 +1,23 @@
+
+@use '../utils/_mixins.scss' as *;
+@use '../utils/_variable.scss' as *;
+
+*[insert] {
+
+}
+
+*[insert="top"] {
+	border-top: $dist-small solid $lgray;
+}
+
+*[insert="bottom"] {
+	border-bottom: $dist-small solid $lgray;
+}
+
+*[insert="right"] {
+	border-right: $dist-small solid $lgray;
+}
+
+*[insert="left"] {
+	border-left: $dist-small solid $lgray;
+}

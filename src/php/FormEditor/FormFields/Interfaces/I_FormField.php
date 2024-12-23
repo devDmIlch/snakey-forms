@@ -34,20 +34,29 @@ interface I_FormField {
 
 	/**
 	 * Displays field preview view in field selector.
+	 *
+	 * @return string Template name for preview.
 	 */
-	public function display_field_preview(): void;
+	public function get_field_preview_template(): string;
 
 	/**
 	 * Displays field content based on its parameters.
 	 *
-	 * @param array $state Parameters of the field.
+	 * @return string Template name for field content.
 	 */
-	public function render_field_content( array $state ): void;
+	public function get_field_content_template(): string;
+
+	/**
+	 * Displays field prototype content.
+	 *
+	 * @return string Template name for field prototype.
+	 */
+	public function get_field_proto_template(): string;
 
 	/**
 	 * Display field editor content.
 	 *
 	 * @param array $state Parameters of the field.
 	 */
-	public function display_field_editor( array $state ): void;
+	public function render_field_editor( array $state ): void;
 }
