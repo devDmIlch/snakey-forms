@@ -1,0 +1,10 @@
+
+@use '../utils/_mixins.scss' as *;
+@use '../utils/_variable.scss' as *;
+
+.snk-box {
+	@include position(absolute, 0);
+	@include border($border-simple, $radius-small);
+	background-color: $white;
+	box-shadow: $shadow-simple;
+}

@@ -1,0 +1,13 @@
+
+@use '../utils/_mixins.scss' as *;
+@use '../utils/_variable.scss' as *;
+
+div.snk-field, input.snk-field, .snk-field {
+	@include width($initial: 100%);
+	@include height($min: 28px);
+	@include border($border-simple, $radius-small);
+}
+
+* + .form-placeholder {
+	display: none;
+}

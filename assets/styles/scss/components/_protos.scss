@@ -1,0 +1,33 @@
+
+@use '../utils/_mixins.scss' as *;
+@use '../utils/_variable.scss' as *;
+
+.snkfrm-proto {
+	@include position(relative);
+
+	.proto-controls {
+		@include position(absolute, $coords: (top: 1px, left: 1px));
+		@include flex;
+
+		opacity: 0;
+		transition: $time-fast opacity;
+		pointer-events: none;
+
+		.action-button {
+			@include size(14px);
+			@include border($border-simple);
+			@include font(12px, 1); // TODO: Update with pretty graphics.
+
+			background-color: $white;
+			text-align: center;
+			cursor: pointer;
+		}
+	}
+
+	&:hover {
+		.proto-controls {
+			opacity: 1;
+			pointer-events: all;
+		}
+	}
+}

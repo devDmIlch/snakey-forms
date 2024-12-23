@@ -1,0 +1,130 @@
+
+@use 'sass:list';
+
+@use '_variable.scss' as *;
+
+// Sizing.
+
+@mixin size($size) {
+	width: $size;
+	height: $size;
+}
+
+@mixin width($min: null, $initial: null, $max: null) {
+	@if ($min != null) {
+		min-width: $min;
+	}
+	@if ($initial != null) {
+		width: $initial;
+	}
+	@if ($max != null) {
+		max-width: $max;
+	}
+}
+
+@mixin height($min: null, $initial: null, $max: null) {
+	@if ($min != null) {
+		min-height: $min;
+	}
+	@if ($initial != null) {
+		width: $initial;
+	}
+	@if ($max != null) {
+		max-height: $max;
+	}
+}
+
+
+// Spacing.
+
+@mixin margin($values: ()) {
+	@each $pos, $offset in $values {
+		@if (false != list.index((top, right, bottom, left), $pos)) {
+			margin-#{$pos}: $offset;
+		}
+		@if ($pos == vert) {
+			margin-top: $offset;
+			margin-bottom: $offset;
+		}
+		@if ($pos == horz) {
+			margin-right: $offset;
+			margin-left: $offset;
+		}
+	}
+}
+
+@mixin padding($values: ()) {
+	@each $pos, $offset in $values {
+		@if (false != list.index((top, right, bottom, left), $pos)) {
+			padding-#{$pos}: $offset;
+		}
+		@if ($pos == vert) {
+			padding-top: $offset;
+			padding-bottom: $offset;
+		}
+		@if ($pos == horz) {
+			padding-right: $offset;
+			padding-left: $offset;
+		}
+	}
+}
+
+
+// Positioning.
+
+@mixin coordinates($coords: (top: -20px, right: unset, bottom: unset, left: unset)) {
+	@each $pos, $offset in $coords {
+		@if (false != list.index((top, right, bottom, left), $pos)) {
+			#{$pos}: $offset;
+		}
+	}
+}
+
+@mixin position($position, $z-index: 0, $coords: ()) {
+	@include coordinates($coords);
+	position: $position;
+	z-index: $z-index;
+}
+
+
+// Contents.
+
+@mixin flex() {
+	display: flex;
+}
+
+
+// Borders.
+
+@mixin border($border-style, $border-radius: unset) {
+	border: $border-style;
+	@if ($border-radius != unset) {
+		border-radius: $border-radius;
+	}
+}
+
+
+// Hovers.
+
+@mixin selectable($time: $time-fast) {
+	user-select: none;
+	transition: filter $time;
+	cursor: pointer;
+
+	&:hover {
+		filter: brightness(.95);
+	}
+}
+
+
+// Fonts.
+
+@mixin font($size, $line-height: null) {
+	font-size: $size;
+
+	@if ($line-height != null) {
+		line-height: $line-height;
+	}
+}
+
+

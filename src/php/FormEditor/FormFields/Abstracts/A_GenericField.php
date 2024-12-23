@@ -68,5 +68,106 @@ abstract class A_GenericField implements I_FormField {
 	 */
 	protected function hooks(): void {
 
+		add_action( 'rest_api_init', [ $this, 'register_rest_routes' ] );
+	}
+
+
+	// Public Methods.
+
+	/**
+	 * Renders field content based on supplied REST $request parameters.
+	 *
+	 * @param \WP_REST_Request $request REST request parameters.
+	 *
+	 * @return array Request response.
+	 */
+	public function render_field_content( \WP_REST_Request $request ): array {
+		// Get request parameters.
+		$state = rest_sanitize_object( $request->get_param( 'state' ) );
+
+		ob_start();
+		load_template( $this->get_field_content_template(), false, $state );
+		$html = ob_get_clean();
+
+		return [
+			'status' => 200,
+			'html'   => $html,
+			'state'  => $request->get_headers(),
+		];
+	}
+
+	/**
+	 * Renders field content based on supplied REST $request parameters.
+	 *
+	 * @param \WP_REST_Request $request REST request parameters.
+	 *
+	 * @return array Request response.
+	 */
+	public function render_field_proto( \WP_REST_Request $request ): array {
+		// Get request parameters.
+		$state = rest_sanitize_object( $request->get_param( 'state' ) );
+
+		ob_start();
+		load_template( $this->get_field_proto_template(), false, $state );
+		$html = ob_get_clean();
+
+		return [
+			'status' => 200,
+			'html'   => $html,
+			'state'  => $request->get_headers(),
+		];
+	}
+
+	/**
+	 * Registers endpoint routes for the plugin
+	 */
+	public function register_rest_routes(): void {
+		register_rest_route(
+			SNKFORMS_PREFIX . '/v1',
+			'/get-field/' . $this->get_slug(),
+			[
+				[
+					'methods'             => [ 'POST' ],
+					'callback'            => [ $this, 'render_field_content' ],
+					// Allow this endpoint to be called only by contributor+ level of users.
+					'permission_callback' => function ( \WP_REST_Request $request ) {
+						return true;
+					},
+					'args'                => [
+						[
+							'state' => [
+								'type'     => 'object',
+								'required' => true,
+							],
+						],
+					],
+				],
+			],
+			false
+		);
+
+		register_rest_route(
+			SNKFORMS_PREFIX . '/v1',
+			'/admin/get-proto/' . $this->get_slug(),
+			[
+				[
+					'methods'             => [ 'POST' ],
+					'callback'            => [ $this, 'render_field_proto' ],
+					// Allow this endpoint to be called only by contributor+ level of users.
+					'permission_callback' => function ( \WP_REST_Request $request ) {
+						return true;
+					},
+					'args'                => [
+						[
+							'state' => [
+								'type'     => 'object',
+								'required' => true,
+							],
+						],
+					],
+				],
+			],
+			false
+		);
 	}
 }

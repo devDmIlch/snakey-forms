@@ -17,9 +17,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Initialize global values.
-const SNKFORMS_PREFIX = 'snkfrm';
+const SNKFORMS_PREFIX     = 'snkfrm';
+const SNKFORMS_PLUGIN_VER = '0.0.1';
 
 // Plugin path constants.
+const SNKFORMS_PLUGIN_FILE      = __FILE__;
 const SNKFORMS_PLUGIN_PATH      = __DIR__;
 const SNKFORMS_PLUGIN_PHP_PATH  = SNKFORMS_PLUGIN_PATH . '/src/php';
 const SNKFORMS_PLUGIN_TEMPLATES = SNKFORMS_PLUGIN_PATH . '/templates/';
@@ -47,6 +49,9 @@ if ( ! class_exists( 'SnakeyForms' ) ) {
 				// Abort future code execution.
 				return;
 			}
+
+			// Register scripts and styles.
+			add_action( 'admin_enqueue_scripts', [ $this, 'register_admin_scripts' ] );
 		}
 
 
@@ -85,6 +90,17 @@ if ( ! class_exists( 'SnakeyForms' ) ) {
 					<?php
 				}
 			);
+		}
+
+		/**
+		 * Registers plugins scripts and styles.
+		 */
+		public function register_admin_scripts(): void {
+			// TODO: personalize file delivery for different screens with get_current_screen().
+
+			// Register scripts and styles.
+			wp_enqueue_style( 'snakey-forms-styles-generic', plugins_url( '/assets/build/custom.css', SNKFORMS_PLUGIN_FILE ), [], SNKFORMS_PLUGIN_VER );
+			wp_enqueue_script( 'snakey-forms-script-generic', plugins_url( '/assets/build/custom.js', SNKFORMS_PLUGIN_FILE ), [], SNKFORMS_PLUGIN_VER, false );
 		}
 	}
 

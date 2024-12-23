@@ -1,0 +1,21 @@
+
+@use '../utils/_mixins.scss' as *;
+@use '../utils/_variable.scss' as *;
+
+.snk-field-shop {
+	@include position(absolute, 10, (right: $dist-small));
+	@include width($min: 200px, $max: 50%);
+	@include padding((vert: $dist-medium));
+
+	.single-field-selectable {
+		padding: $dist-small;
+		border-top: $border-transparent;
+		border-bottom: $border-transparent;
+		background-color: $white;
+		@include selectable;
+
+		&.loading {
+			filter: opacity(0.5);
+		}
+	}
+}
