@@ -37,7 +37,7 @@ class TextField extends A_GenericField {
 	 * @return string Template name for preview.
 	 */
 	public function get_field_preview_template(): string {
-		return apply_filters( SNKFORMS_PREFIX . '_field_preview_template_' . $this->field_slug, SNKFORMS_PLUGIN_TEMPLATES . 'previews/text-field.php' );
+		return apply_filters( SNKFORMS_PREFIX . '_field_preview_template_' . $this->field_slug, SNKFORMS_PLUGIN_TEMPLATES . 'admin/previews/text-field.php' );
 	}
 
 	/**
@@ -55,16 +55,15 @@ class TextField extends A_GenericField {
 	 * @return string Template name for field content.
 	 */
 	public function get_field_proto_template(): string {
-		return apply_filters( SNKFORMS_PREFIX . '_field_template_' . $this->field_slug, SNKFORMS_PLUGIN_TEMPLATES . 'proto/text-field.php' );
+		return apply_filters( SNKFORMS_PREFIX . '_field_template_' . $this->field_slug, SNKFORMS_PLUGIN_TEMPLATES . 'admin/proto/text-field.php' );
 	}
 
 	/**
 	 * Display field editor content.
 	 *
-	 * @param array $state Parameters of the field.
+	 * @return string Template name for field editor.
 	 */
-	public function render_field_editor( array $state ): void {
-		echo 'text field editor';
-		// TODO: Implement display_field_editor() method.
+	public function get_field_editor_template(): string {
+		return apply_filters( SNKFORMS_PREFIX . '_field_template_' . $this->field_slug, SNKFORMS_PLUGIN_TEMPLATES . 'admin/editors/text-field.php' );
 	}
 }

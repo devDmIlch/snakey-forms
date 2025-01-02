@@ -14,11 +14,18 @@ if ( empty( $args ) ) {
 ?>
 <div id="form-content" class="form-content">
 	<?php if ( is_array( $args['fields'] ) ) : ?>
-		<?php foreach ( $args['fields'] as $field ) : ?>
-			<div class="single-field" draggable="true"  props="<?php echo esc_attr( $field['props'] ); ?>">
-				<?php load_template( $field['template'], false, $field['state'] ?? [] ); ?>
-			</div>
-		<?php endforeach; ?>
+		<?php
+		foreach ( $args['fields'] as $field ) {
+			load_template(
+				$field['template'],
+				false,
+				[
+					'state' => $field['state'] ?? [],
+					'props' => $field['props'],
+				]
+			);
+		}
+		?>
 		<div class="form-placeholder">
 			<?php esc_html_e( 'Drag over a field or select field in the menu', 'snakebytes' ); ?>
 		</div>
