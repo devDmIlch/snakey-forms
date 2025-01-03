@@ -1,5 +1,9 @@
 
+// External Dependencies.
 import axios from 'axios';
+
+// Internal Dependencies.
+import FieldCustomization from "../FieldCustomization/FieldCustomization";
 
 // Form controller class.
 const formDirector = {
@@ -36,23 +40,26 @@ const formDirector = {
 		// Save form wrapper element to use later.
 		this.formDOMEl = formDOMEl;
 		// Find form fields containing within the wrapper.
-		this.formFields = Array.from(formDOMEl.querySelectorAll('.single-field')) ?? [];
+		this.formFields = Array.from(formDOMEl.querySelectorAll('.snkfrm-field')) ?? [];
 		// Find shop fields available for user.
 		this.shopFields = Array.from(formDOMEl.querySelectorAll('.single-field-selectable')) ?? [];
 
 		// Find input field.
 		this.inputField = formDOMEl.querySelector('.form-input');
+		// Find form content container.
+		this.formContent = formDOMEl.querySelector('#form-content');
 
 		// Initialize selected form fields.
-		this.formFields.forEach((field) => { this.initFieldDrag(field); this.initFormField(field) });
+		this.formFields.forEach((field) => { this.initFieldDragging(field); this.initFormField(field) });
 		// Initialize selectable fields.
 		this.shopFields.forEach((field) => this.initFieldSelectable(field));
 
 		// Initialize placeholder.
 		this.placeholderEl = formDOMEl.querySelector('.form-placeholder');
-		this.initFieldDrag(this.placeholderEl);
+		this.initFieldDragging(this.placeholderEl);
 	},
 
+	// Initializes selectable field from the shop.
 	initFieldSelectable(field) {
 		const fieldType = field.getAttribute('name');
 
@@ -124,28 +131,35 @@ const formDirector = {
 
 				// Insert field as the last.
 				if (!relField) {
-					// Get the last element in the array of field element references.
-					const targetField = this.formFields[this.formFields.length - 1];
-					// Insert field in the DOM.
-					targetField.insertAdjacentHTML('afterend', response.data.html);
+					if (this.formFields.length < 1) {
+						// Insert element inside of the container for content.
+						this.formContent.insertAdjacentHTML('afterbegin', response.data.html);
+						// Save field to push it to the references array.
+						newField = this.formContent.childNodes[0];
+					} else {
+						// Get the last element in the array of field element references.
+						const targetField = this.formFields[this.formFields.length - 1];
+						// Insert field in the DOM.
+						targetField.insertAdjacentHTML('afterend', response.data.html);
+						// Save field to push it to the references array.
+						newField = targetField.nextElementSibling;
+					}
 					// Insert field in the array with references.
-					newField = targetField.nextElementSibling;
 					this.formFields.push(newField);
 				}
 
 				// Initialize new field.
 				this.initFormField(newField);
 				// Initialize dragging actions.
-				this.initFieldDrag(newField);
+				this.initFieldDragging(newField);
 
 				// Save initial field state.
 				newField.props = fieldState;
 				// Save changes.
 				this.saveFields();
-
-				console.log(this.formFields);
 			}).catch((error) => {
-
+				// TODO: Do some proper error handling later.
+				console.log(error);
 			});
 		}
 
@@ -165,7 +179,8 @@ const formDirector = {
 		});
 	},
 
-	initFieldDrag(field) {
+	// Initializes dragging properties of a field in the content area.
+	initFieldDragging(field) {
 		field.addEventListener('dragover', (e) => {
 			// Set property to indicate that the item's still has cursor over it.
 			field.dragHovered = true;
@@ -191,6 +206,10 @@ const formDirector = {
 			// Remove dragged class.
 			field.removeAttribute('insert');
 		});
+
+		if ('true' !== field.getAttribute('draggable')) {
+			return;
+		}
 
 		field.addEventListener('dragend', (e) => {
 			// Check if the drop position is valid.
@@ -238,12 +257,14 @@ const formDirector = {
 		});
 	},
 
+	// Initializes actions with the selected field.
 	initFormField(field) {
-		if (field.hasAttribute('props')) {
+		// Initialize the properties if they are supplied.
+		if (field.getAttribute('props')) {
 			field.props = JSON.parse(field.getAttribute('props'));
 		}
 
-		// Init controls.
+		// Initialize field controls.
 		const fieldControls = field.querySelector('.proto-controls');
 		if (fieldControls) {
 
@@ -297,12 +318,39 @@ const formDirector = {
 				});
 			}
 		}
+
+		// Check whether the field should be customizable.
+		if (!field.classList.contains('is-customizable')) {
+			return;
+		}
+
+		// Call field customizer window on click.
+		field.addEventListener('click', () => {
+			FieldCustomization.callCustomizer(field.props.type, field.props.state, field, (state) => this.updateFieldContent(field, state));
+		});
 	},
 
-	initFieldCustom(field) {
+	// Updates field content.
+	updateFieldContent(field, state) {
+		// Update field state in the element.
+		field.props.state = state;
 
+		// Update fields value.
+		this.saveFields();
+
+		// Request new content for the field.
+		axios.post('/wp-json/snkfrm/v1/admin/get-proto/' + field.props.type, { state: state }, {}).then((response) => {
+			// Create element from the received html.
+			const template = document.createElement('template');
+			template.innerHTML = response.data.html;
+
+			// Replace field content with updated values.
+			field.innerHTML = template.content.firstChild.innerHTML;
+		}).catch((error) => {
+			// TODO: Some proper error handling.
+			console.log(error);
+		});
 	},
-
 
 	// Worker Functions.
 
@@ -360,8 +408,6 @@ const formDirector = {
 	// Saving functions.
 
 	saveFields() {
-		console.log(this.formFields.map((el) => el.props));
-
 		this.inputField.value = JSON.stringify(Object.assign({}, this.formFields.map((el) => el.props)));
 	},
 }

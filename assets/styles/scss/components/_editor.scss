@@ -2,22 +2,11 @@
 @use '../utils/_mixins.scss' as *;
 @use '../utils/_variable.scss' as *;
 
-*[insert] {
+.snk-field-customizer {
+	@include position(fixed, $z-index: 100, $coords: (top: calc(var(--wp-admin--admin-bar--height) + $dist-medium), right: $dist-medium));
 
-}
-
-*[insert="top"] {
-	border-top: $dist-small solid $lgray;
-}
-
-*[insert="bottom"] {
-	border-bottom: $dist-small solid $lgray;
-}
-
-*[insert="right"] {
-	border-right: $dist-small solid $lgray;
-}
-
-*[insert="left"] {
-	border-left: $dist-small solid $lgray;
+	padding: $dist-small;
+	border-top: $border-transparent;
+	border-bottom: $border-transparent;
+	background-color: $white;
 }

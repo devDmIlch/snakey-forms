@@ -8,12 +8,13 @@
 
 namespace SnakeyForms\FormEditor\FormFields\Abstracts;
 
+use SnakeyForms\FormEditor\FormFields\Interfaces\I_FieldCustomizable;
 use SnakeyForms\FormEditor\FormFields\Interfaces\I_FormField;
 
 /**
  * Generic Fields abstract class. Extend this class to add custom field types for the form editor.
  */
-abstract class A_GenericField implements I_FormField {
+abstract class A_GenericField implements I_FormField, I_FieldCustomizable {
 
 	// Protected Fields.
 
@@ -92,7 +93,6 @@ abstract class A_GenericField implements I_FormField {
 		return [
 			'status' => 200,
 			'html'   => $html,
-			'state'  => $request->get_headers(),
 		];
 	}
 
@@ -108,13 +108,33 @@ abstract class A_GenericField implements I_FormField {
 		$state = rest_sanitize_object( $request->get_param( 'state' ) );
 
 		ob_start();
-		load_template( $this->get_field_proto_template(), false, $state );
+		load_template( $this->get_field_proto_template(), false, [ 'state' => $state ] );
 		$html = ob_get_clean();
 
 		return [
 			'status' => 200,
 			'html'   => $html,
-			'state'  => $request->get_headers(),
+		];
+	}
+
+	/**
+	 * Renders field customization area content.
+	 *
+	 * @param \WP_REST_Request $request REST request parameters.
+	 *
+	 * @return array Request response.
+	 */
+	public function render_field_editor( \WP_REST_Request $request ): array {
+		// Get request parameters.
+		$state = rest_sanitize_object( $request->get_param( 'state' ) );
+
+		ob_start();
+		load_template( $this->get_field_editor_template(), false, $state );
+		$html = ob_get_clean();
+
+		return [
+			'status' => 200,
+			'html'   => $html,
 		];
 	}
 
@@ -153,6 +173,30 @@ abstract class A_GenericField implements I_FormField {
 				[
 					'methods'             => [ 'POST' ],
 					'callback'            => [ $this, 'render_field_proto' ],
+					// Allow this endpoint to be called only by contributor+ level of users.
+					'permission_callback' => function ( \WP_REST_Request $request ) {
+						return true;
+					},
+					'args'                => [
+						[
+							'state' => [
+								'type'     => 'object',
+								'required' => true,
+							],
+						],
+					],
+				],
+			],
+			false
+		);
+
+		register_rest_route(
+			SNKFORMS_PREFIX . '/v1',
+			'/admin/get-editor/' . $this->get_slug(),
+			[
+				[
+					'methods'             => [ 'POST' ],
+					'callback'            => [ $this, 'render_field_editor' ],
 					// Allow this endpoint to be called only by contributor+ level of users.
 					'permission_callback' => function ( \WP_REST_Request $request ) {
 						return true;

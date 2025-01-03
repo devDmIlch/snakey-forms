@@ -150,7 +150,7 @@ class FormEditor {
 			$this->parse_selected_field_states( $content, $this->r_fields )
 		);
 
-		load_template( SNKFORMS_PLUGIN_TEMPLATES . 'sections/form-content.php', false, [ 'fields' => $template_args ] );
+		load_template( SNKFORMS_PLUGIN_TEMPLATES . 'admin/sections/form-content.php', false, [ 'fields' => $template_args ] );
 	}
 
 	/**
@@ -167,6 +167,42 @@ class FormEditor {
 			$this->get_r_fields()
 		);
 
-		load_template( SNKFORMS_PLUGIN_TEMPLATES . 'sections/field-shop.php', false, [ 'fields' => $template_args ] );
+		load_template( SNKFORMS_PLUGIN_TEMPLATES . 'admin/sections/field-shop.php', false, [ 'fields' => $template_args ] );
+	}
+
+	/**
+	 * Returns html with field customizer area template.
+	 *
+	 * @return array REST Request response.
+	 */
+	public function get_field_customizer(): array {
+
+		ob_start();
+		load_template( SNKFORMS_PLUGIN_TEMPLATES . 'admin/sections/field-customizer.php', true );
+		$html = ob_get_clean();
+
+		return [
+			'status' => 200,
+			'html'   => $html,
+		];
+	}
+
+	/**
+	 * Registers REST API endpoints for editor.
+	 */
+	public function register_rest_routes(): void {
+
+		register_rest_route(
+			SNKFORMS_PREFIX . '/v1',
+			'/form-editor/get-customizer',
+			[
+				[
+					'methods'             => [ 'POST' ],
+					'callback'            => [ $this, 'get_field_customizer' ],
+					'permission_callback' => '__return_true',
+					'args'                => [],
+				],
+			]
+		);
 	}
 }
