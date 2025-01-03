@@ -8,6 +8,7 @@
 
 namespace SnakeyForms\PostTypes;
 
+use SnakeyForms\DB\Table_Controller;
 use SnakeyForms\FormEditor\FormEditor;
 
 /**
@@ -84,11 +85,106 @@ class SnakeyForm {
 		add_action( 'add_meta_boxes_' . $this->slug, [ $this, 'add_form_editor_metabox' ] );
 
 		// Update post with data from editor metabox.
-		add_filter( 'wp_insert_post_data', [ $this, 'filter_post_content' ], 10, 2 );
+		add_filter( 'wp_insert_post_data', [ $this, 'on_post_submission' ], 10, 2 );
+		// Remove saved extended data on post deletion.
+		add_action( 'delete_post', [ $this, 'on_post_deletion' ], 10, 1 );
 	}
 
 
 	// Private Methods.
+
+	/**
+	 * Retrieves extended data from the extended posts data table.
+	 *
+	 * @param int $post_id ID of the post.
+	 *
+	 * @return array Array of additional data.
+	 */
+	private function get_extended_data( int $post_id ): array {
+		$cache_name = 'post_' . $this->slug . '_extended_' . $post_id;
+		// Check if cache exists.
+		$post_data = wp_cache_get( $cache_name, SNKFORMS_PREFIX );
+		if ( $post_data ) {
+			return $post_data;
+		}
+
+		global $wpdb;
+		$table_name = $wpdb->prefix . Table_Controller::get_form_data_table();
+
+		// Get post data from DB if it's not in the cache.
+		$post_data = $wpdb->get_results( $wpdb->prepare( 'SELECT * from %i WHERE post_id=%d', $table_name, $post_id ), ARRAY_A );
+		// Save data in the cache.
+		wp_cache_set( $cache_name, $post_data, SNKFORMS_PREFIX );
+
+		if ( empty( $post_data ) ) {
+			return [];
+		}
+
+		return $post_data[0];
+	}
+
+	/**
+	 * Updates (or creates) DB record with extended post data.
+	 *
+	 * @param int   $post_id   ID of the post.
+	 * @param array $post_data Extended post data values.
+	 *
+	 * @return bool true on success, false on failure.
+	 */
+	private function set_extended_data( int $post_id, array $post_data ): bool {
+		$cache_name = 'post_' . $this->slug . '_extended_' . $post_id;
+		// Delete old cache with extended data.
+		wp_cache_delete( $cache_name, SNKFORMS_PREFIX );
+
+		// Array of allowed keys for the table.
+		$allowed_format = [
+			'post_json'    => '%s',
+			'parent_style' => '%d',
+		];
+
+		// Filter both $post_data supplied as an argument and $allowed_format array to match their keys.
+		$allowed_format = array_intersect_key( $allowed_format, $post_data );
+		$post_data      = array_intersect_key( $post_data, $allowed_format );
+
+		global $wpdb;
+		$table_name = $wpdb->prefix . Table_Controller::get_form_data_table();
+
+		// Check whether the record for this post exists.
+		$existing_data = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE post_id=%d', $table_name, $post_id ), ARRAY_A );
+
+		// Either update existing or insert new record.
+		if ( empty( $existing_data ) ) {
+			$result = $wpdb->insert( $table_name, array_merge( [ 'post_id' => $post_id ], $post_data ), array_merge( [ 'post_id' => '%d' ], $allowed_format ) );
+		} else {
+			$result = $wpdb->update( $table_name, $post_data, [ 'post_id' => $post_id ], $allowed_format, [ 'post_id' => '%d' ] );
+		}
+
+		return ! ( false === $result );
+	}
+
+	/**
+	 * Removed DB record with extended post data based on supplied post ID.
+	 *
+	 * @param int $post_id ID of the post.
+	 *
+	 * @return bool true on success, false on failure.
+	 */
+	public function delete_extended_data( int $post_id ): bool {
+		$cache_name = 'post_' . $this->slug . '_extended_' . $post_id;
+		// Delete old cache with extended data.
+		wp_cache_delete( $cache_name, SNKFORMS_PREFIX );
+
+		global $wpdb;
+		$table_name = $wpdb->prefix . Table_Controller::get_form_data_table();
+
+		// Check whether the record for this post exists.
+		$result = $wpdb->delete( $table_name, [ 'post_id' => $post_id ], [ 'post_id' => '%d' ] );
+
+		return ! ( false === $result );
+	}
+
+
+	// Public Methods.
 
 	/**
 	 * Registers form post type.
@@ -127,7 +223,7 @@ class SnakeyForm {
 	 *
 	 * @return array Array of data with modified content, if the nonce and post_type are valid.
 	 */
-	public function filter_post_content( array $data, array $postarr ) : array {
+	public function on_post_submission( array $data, array $postarr ) : array {
 		// Check the post type.
 		if ( $postarr['post_type'] !== $this->slug ) {
 			return $data;
@@ -138,12 +234,32 @@ class SnakeyForm {
 			return $data;
 		}
 
+		// Sanitize json value of the post content.
+		if ( ! empty( $_POST['form-input'] ) ) {
+			$post_json = sanitize_text_field( wp_unslash( $_POST['form-input'] ) );
+		}
+
+		// Update post extended data.
+		if ( ! empty( $post_json ) ) {
+			$this->set_extended_data( $postarr['post_ID'], [ 'post_json' => $post_json ] );
+		}
+
 		// Overwrite the post content with data from post editor.
 		if ( ! empty( $_POST['form-input'] ) ) {
-			$data['post_content'] = sanitize_text_field( wp_unslash( $_POST['form-input'] ) );
+			$data['post_content'] = $this->get_form_editor_obj()->get_form_content_from_json( $postarr['post_ID'], $post_json );
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Removes record from extended data table during post deletion.
+	 *
+	 * @param int $post_id ID of the deleted post.
+	 */
+	public function on_post_deletion( int $post_id ): void {
+		// Remove extended data related to the post.
+		$this->delete_extended_data( $post_id );
 	}
 
 	/**
@@ -152,11 +268,14 @@ class SnakeyForm {
 	 * @param \WP_Post $post_obj Edited post object.
 	 */
 	public function render_form_editor_content( \WP_Post $post_obj ): void {
+		// Get post data details.
+		$post_data = $this->get_extended_data( $post_obj->ID );
+
 		// Add input field.
 		$this->get_form_editor_obj()->render_input();
 		// Renders field shop.
 		$this->get_form_editor_obj()->display_field_shop();
 		// Renders content of the form.
-		$this->get_form_editor_obj()->display_form_editor_content( $post_obj->post_content );
+		$this->get_form_editor_obj()->display_form_editor_content( $post_data['post_json'] );
 	}
 }
