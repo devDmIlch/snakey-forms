@@ -126,6 +126,39 @@ class FormEditor {
 	}
 
 	/**
+	 * Transforms form content in JSON format to regular HTML.
+	 *
+	 * @param int    $post_id   ID of the post.
+	 * @param string $form_json Form content in JSON format.
+	 *
+	 * @return string Content in HTML.
+	 */
+	public function get_form_content_from_json( int $post_id, string $form_json ): string {
+		// Parse selected fields data.
+		$content = empty( $form_json ) ? [] : json_decode( $form_json, true );
+
+		$fields = array_map(
+			function ( $field ) {
+				return [
+					'template' => $field['ref']->get_field_content_template(),
+					'state'    => $field['state'],
+				];
+			},
+			$this->parse_selected_field_states( $content, $this->r_fields )
+		);
+
+		// Prepare arguments for template to work with.
+		$template_args = [
+			'form_id' => $post_id,
+			'fields'  => $fields,
+		];
+
+		ob_start();
+		load_template( SNKFORMS_PLUGIN_TEMPLATES . 'sections/form-container.php', false, $template_args );
+		return ob_get_clean();
+	}
+
+	/**
 	 * Displays form content for post editor.
 	 *
 	 * @param string|null $content Existing content of the form.

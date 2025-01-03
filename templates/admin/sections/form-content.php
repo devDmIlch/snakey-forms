@@ -13,8 +13,8 @@ if ( empty( $args ) ) {
 
 ?>
 <div id="form-content" class="form-content">
-	<?php if ( is_array( $args['fields'] ) ) : ?>
-		<?php
+	<?php
+	if ( is_array( $args['fields'] ) ) {
 		foreach ( $args['fields'] as $field ) {
 			load_template(
 				$field['template'],
@@ -29,5 +29,7 @@ if ( empty( $args ) ) {
 		<div class="form-placeholder">
 			<?php esc_html_e( 'Drag over a field or select field in the menu', 'snakebytes' ); ?>
 		</div>
-	<?php endif; ?>
+		<?php
+	}
+	?>
 </div>

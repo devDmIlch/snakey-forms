@@ -50,6 +50,9 @@ if ( ! class_exists( 'SnakeyForms' ) ) {
 				return;
 			}
 
+			// Initialize DB table controller.
+			$this->init_table_controller();
+
 			// Register scripts and styles.
 			add_action( 'admin_enqueue_scripts', [ $this, 'register_admin_scripts' ] );
 		}
@@ -71,6 +74,14 @@ if ( ! class_exists( 'SnakeyForms' ) ) {
 
 			// Return true if the initialization went well.
 			return true;
+		}
+
+		/**
+		 * Initializes DB table controller class.
+		 */
+		private function init_table_controller() {
+			$table_controller = new \SnakeyForms\DB\Table_Controller();
+			$table_controller->init();
 		}
 
 		/**
