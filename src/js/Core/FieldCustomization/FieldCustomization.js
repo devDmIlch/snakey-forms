@@ -1,5 +1,8 @@
 
+// External dependencies.
 import axios from "axios";
+// Internal dependencies.
+import Resizer from "./Resizer";
 
 const FieldCustomization = {
 	prevReference: null,
@@ -16,8 +19,6 @@ const FieldCustomization = {
 	closeCustomizerOnClick() {
 		// Add a check to close customizer upon clicking outside.
 		document.addEventListener('click', (e) => {
-			console.log('test');
-
 			// Check whether a user clicked referenced item.
 			if (this.prevReference !== null && this.prevReference.contains(e.target)) {
 				// Create new event as this one was aborted.
@@ -56,6 +57,12 @@ const FieldCustomization = {
 				this.handleUpdate(this.state);
 			}
 		}));
+
+		// Initialize Resizer.
+		const resizer = this.customizer.querySelector('.snakey-resizer');
+		if (resizer) {
+			Resizer.init(resizer);
+		}
 	},
 
 	callCustomizer(fieldType, fieldState, reference = null, onUpdate = null) {

@@ -27,7 +27,7 @@
 		min-height: $min;
 	}
 	@if ($initial != null) {
-		width: $initial;
+		height: $initial;
 	}
 	@if ($max != null) {
 		max-height: $max;
@@ -39,7 +39,7 @@
 
 @mixin margin($values: ()) {
 	@each $pos, $offset in $values {
-		@if (false != list.index((top, right, bottom, left), $pos)) {
+		@if (null != list.index((top, right, bottom, left), $pos)) {
 			margin-#{$pos}: $offset;
 		}
 		@if ($pos == vert) {
@@ -50,12 +50,15 @@
 			margin-right: $offset;
 			margin-left: $offset;
 		}
+		@if ($pos == all) {
+			margin: $offset;
+		}
 	}
 }
 
 @mixin padding($values: ()) {
 	@each $pos, $offset in $values {
-		@if (false != list.index((top, right, bottom, left), $pos)) {
+		@if (null != list.index((top, right, bottom, left), $pos)) {
 			padding-#{$pos}: $offset;
 		}
 		@if ($pos == vert) {
@@ -65,6 +68,9 @@
 		@if ($pos == horz) {
 			padding-right: $offset;
 			padding-left: $offset;
+		}
+		@if ($pos == all) {
+			padding: $offset;
 		}
 	}
 }
@@ -89,8 +95,16 @@
 
 // Contents.
 
-@mixin flex() {
+@mixin flex($dir: null, $gap: null) {
 	display: flex;
+
+	@if ($dir != null) {
+		flex-direction: $dir;
+	}
+
+	@if ($gap != null) {
+		gap: $gap;
+	}
 }
 
 
@@ -119,12 +133,25 @@
 
 // Fonts.
 
-@mixin font($size, $line-height: null) {
+@mixin font($size, $line-height: null, $weight: null) {
 	font-size: $size;
 
 	@if ($line-height != null) {
 		line-height: $line-height;
 	}
+	@if ($weight != null) {
+		font-weight: $weight;
+	}
 }
 
 
+// Visual.
+
+@mixin bg-checkerboard() {
+	background: repeating-conic-gradient(rgba(240, 240, 240, 1) 0% 25%, rgba(250, 250, 250, 1) 0% 50%) 50% / 30px 30px;
+	transition: background $time-med;
+
+	&:hover {
+		background: repeating-conic-gradient(rgba(240, 240, 240, 0.5) 0% 25%, rgba(250, 250, 250, 0.5) 0% 50%) 50% / 30px 30px;
+	}
+}

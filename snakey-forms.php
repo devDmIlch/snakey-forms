@@ -26,6 +26,9 @@ const SNKFORMS_PLUGIN_PATH      = __DIR__;
 const SNKFORMS_PLUGIN_PHP_PATH  = SNKFORMS_PLUGIN_PATH . '/src/php';
 const SNKFORMS_PLUGIN_TEMPLATES = SNKFORMS_PLUGIN_PATH . '/templates/';
 
+// Relative paths.
+const SNKFORMS_SVG_PATH = WP_PLUGIN_URL . '/snakey-forms/assets/images/svg/';
+
 // Set up dependencies.
 require_once SNKFORMS_PLUGIN_PATH . '/vendor/autoload.php';
 

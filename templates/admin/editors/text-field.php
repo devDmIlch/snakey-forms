@@ -24,5 +24,14 @@ if ( empty( $args ) ) {
 			'value' => $args['name'],
 		]
 	);
+
+	// Field Customizer.
+	load_template(
+		SNKFORMS_PLUGIN_TEMPLATES . 'admin/editors/fields/resizer.php',
+		false,
+		[
+			'name' => $args['name'],
+		]
+	);
 	?>
 </div>
