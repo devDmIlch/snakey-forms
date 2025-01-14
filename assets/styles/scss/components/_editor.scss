@@ -234,18 +234,22 @@
 				}
 
 				$corner-props:
-					top-right (bottom: 100%, left: 100%) nesw-resize,
-					bottom-right (top: 100%, left: 100%) nwse-resize,
-					bottom-left (top: 100%, right: 100%) nesw-resize,
-					top-left (bottom: 100%, right: 100%) nwse-resize;
+					top-right (bottom: 100%, left: 100%) nesw-resize translate(-10px, 10px),
+					bottom-right (top: 100%, left: 100%) nwse-resize translate(-10px, -10px),
+					bottom-left (top: 100%, right: 100%) nesw-resize translate(10px, -10px),
+					top-left (bottom: 100%, right: 100%) nwse-resize translate(10px, 10px);
 
-				@each $corner, $coords, $cursor in $corner-props {
+				@each $corner, $coords, $cursor, $transform in $corner-props {
 					.border-#{$corner} {
 						@include coordinates($coords);
 						@include flex($gap: $dist-tiny);
 
 						.resize-corner-#{$corner} {
 							cursor: $cursor;
+						}
+
+						.control-button {
+							transform: $transform;
 						}
 					}
 				}

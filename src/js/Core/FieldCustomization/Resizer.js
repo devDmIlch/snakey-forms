@@ -31,8 +31,11 @@ const Resizer = {
 					return;
 				}
 
-				// Updates mod style with provided value.
-				const updateModStyle = (value) => {
+				// Get referenced input element if ID was passed in properties.
+				const refInputEl = props.refInputID ? resizer.querySelector('#' + props.refInputID) : null;
+
+				// Updates mod value with provided one.
+				const updateModValue = (value) => {
 					// Modify target element style.
 					if (props.modStyle) {
 						modEl.style[props.modStyle] = value < 0 ? 0 : value + 'px';
@@ -45,6 +48,20 @@ const Resizer = {
 
 					// Update last modified value.
 					lastModValue = value;
+				}
+
+				// Updates mod style with provided value.
+				const updateModStyle = (value) => {
+					// Update value.
+					updateModValue(value);
+
+					// Set input value if input field exists.
+					if (refInputEl) {
+						// Update the value.
+						refInputEl.value = lastModValue;
+						// Dispatch event to trigger the field update.
+						refInputEl.dispatchEvent(new CustomEvent('change'));
+					}
 				}
 
 				// Get existing value of the modified element.
@@ -107,7 +124,7 @@ const Resizer = {
 						// Get offset of the mouse relative to the element.
 						const mouseOffset = props.isVertical ? e.pageY - initialMousePos.y : e.pageX - initialMousePos.x;
 						// Calculate value modifier based on the offset and properties.
-						const mouseOffsetMod = mouseOffset * (props.inversePrimeAxis ? -1 : 1) * (props.modRatio ?? 1);
+						const mouseOffsetMod = mouseOffset * (props.invertPrimeAxis ? -1 : 1) * (props.modRatio ?? 1);
 						// Find a new value.
 						let newValue = initialValue + mouseOffsetMod;
 
@@ -116,13 +133,13 @@ const Resizer = {
 							// Get offset in alternative axis.
 							const altOffset = !props.isVertical ? e.pageY - initialMousePos.y : e.pageX - initialMousePos.x;
 							// Calculate value modifier based on the offset and properties.
-							const altOffsetMod = altOffset * (props.inverseSecondaryAxis ? -1 : 1) * (props.modRatio ?? 1);
+							const altOffsetMod = altOffset * (props.invertSecondaryAxis ? -1 : 1) * (props.modRatio ?? 1);
 							// Use fast approximation formula to get the distance.
 							newValue = initialValue + ((Math.abs(altOffsetMod) > Math.abs(mouseOffsetMod)) ? altOffsetMod * 1.4 + mouseOffsetMod : mouseOffsetMod * 1.4 + altOffsetMod);
 						}
 
 						// Round the value and update element style.
-						updateModStyle(newValue.toFixed(2));
+						updateModStyle(parseFloat(newValue.toFixed(2)));
 
 						// Handle the 'resize' event trigger.
 						if (onResize) {
@@ -141,6 +158,17 @@ const Resizer = {
 						document.removeEventListener('pointermove', currentMouseMoveAction);
 					}, {once: true});
 				});
+
+				if (refInputEl) {
+					// Check whether the input value is set and use it as initial one.
+					if (refInputEl.value.length) {
+						updateModValue(refInputEl.value);
+					}
+					// Add Event to update resizer on updating input field value.
+					refInputEl.addEventListener('change', (e) => {
+						updateModValue(refInputEl.value);
+					});
+				}
 
 				return {
 					updateStyle: updateModStyle,
@@ -388,6 +416,7 @@ const Resizer = {
 						(fieldInner.style.paddingTop.length > 0 ? parseInt(fieldInner.style.paddingTop) : 0) -
 						(fieldInner.style.paddingBottom.length > 0 ? parseInt(fieldInner.style.paddingBottom) : 0);
 				},
+				refInputID: 'height',
 			});
 			initResizer(resizer.querySelector('.resize-horizontal'), fieldInner, {
 				isVertical: false,
@@ -398,38 +427,44 @@ const Resizer = {
 						(fieldInner.style.paddingRight.length > 0 ? parseInt(fieldInner.style.paddingRight) : 0) -
 						(fieldInner.style.paddingLeft.length > 0 ? parseInt(fieldInner.style.paddingLeft) : 0);
 				},
+				refInputID: 'width',
 			});
 
 			// Padding Resizers.
-			initResizer(resizer.querySelector('.resize-padding-top'), fieldInner, {
-				isVertical: true,
-				modStyleRef: 'paddingTop',
-				modStyle: 'padding-top',
-				modSelf: true,
-				modSelfStyle: 'height',
-			});
-			initResizer(resizer.querySelector('.resize-padding-right'), fieldInner, {
-				isVertical: false,
-				inversePrimeAxis: true,
-				modStyleRef: 'paddingRight',
-				modStyle: 'padding-right',
-				modSelf: true,
-				modSelfStyle: 'width',
-			});
-			initResizer(resizer.querySelector('.resize-padding-bottom'), fieldInner, {
-				isVertical: true,
-				modStyleRef: 'paddingBottom',
-				modStyle: 'padding-bottom',
-				modSelf: true,
-				modSelfStyle: 'height',
-			});
-			initResizer(resizer.querySelector('.resize-padding-left'), fieldInner, {
-				isVertical: false,
-				modStyleRef: 'paddingLeft',
-				modStyle: 'padding-left',
-				modSelf: true,
-				modSelfStyle: 'width',
-			});
+			const paddingResizerParams = {
+				paddingTop: {
+					name: 'padding-top',
+					isVertical: true,
+					modSelfStyle: 'height'
+				},
+				paddingRight: {
+					name: 'padding-right',
+					isVertical: false,
+					invertPrimeAxis: true,
+					modSelfStyle: 'width'
+				},
+				paddingBottom: {
+					name: 'padding-bottom',
+					isVertical: true,
+					modSelfStyle: 'height'
+				},
+				paddingLeft: {
+					name: 'padding-left',
+					isVertical: false,
+					modSelfStyle: 'width'
+				},
+			};
+			for (const [modStyleRef, params] of Object.entries(paddingResizerParams)) {
+				initResizer(resizer.querySelector('.resize-' + params.name), fieldInner, {
+					isVertical:      params.isVertical ?? false,
+					invertPrimeAxis: params.invertPrimeAxis ?? false,
+					modStyleRef:  modStyleRef,
+					modStyle:     params.name,
+					modSelf:      true,
+					modSelfStyle: params.modSelfStyle,
+					refInputID:   params.name,
+				});
+			}
 
 			// Margin Resizers.
 			initResizer(resizer.querySelector('.resize-margin-top'), fieldContainer, {
@@ -438,6 +473,7 @@ const Resizer = {
 				modStyle: 'padding-top',
 				modSelf: true,
 				modSelfStyle: 'height',
+				refInputID: 'margin-top',
 			});
 			initResizer(resizer.querySelector('.resize-margin-right'), fieldContainer, {
 				isVertical: false,
@@ -445,6 +481,7 @@ const Resizer = {
 				modStyle: 'padding-right',
 				modSelf: true,
 				modSelfStyle: 'width',
+				refInputID: 'margin-right',
 			});
 			initResizer(resizer.querySelector('.resize-margin-bottom'), fieldContainer, {
 				isVertical: true,
@@ -452,6 +489,7 @@ const Resizer = {
 				modStyle: 'padding-bottom',
 				modSelf: true,
 				modSelfStyle: 'height',
+				refInputID: 'margin-bottom',
 			});
 			initResizer(resizer.querySelector('.resize-margin-left'), fieldContainer, {
 				isVertical: false,
@@ -459,6 +497,7 @@ const Resizer = {
 				modStyle: 'padding-left',
 				modSelf: true,
 				modSelfStyle: 'width',
+				refInputID: 'margin-left',
 			});
 
 			// Border Width Resizer.
@@ -469,6 +508,7 @@ const Resizer = {
 				getModInitialValue: () => {
 					return parseInt(getComputedStyle(fieldInner).getPropertyValue('border-top-width'));
 				},
+				refInputID: 'border-top-width',
 			});
 			const rBorderRight = initResizer(resizer.querySelector('.resize-border-right'), fieldInner, {
 				isVertical: false,
@@ -478,6 +518,7 @@ const Resizer = {
 				getModInitialValue: () => {
 					return parseInt(getComputedStyle(fieldInner).getPropertyValue('border-right-width'));
 				},
+				refInputID: 'border-right-width',
 			});
 			const rBorderBottom = initResizer(resizer.querySelector('.resize-border-bottom'), fieldInner, {
 				isVertical: true,
@@ -486,6 +527,7 @@ const Resizer = {
 				getModInitialValue: () => {
 					return parseInt(getComputedStyle(fieldInner).getPropertyValue('border-bottom-width'));
 				},
+				refInputID: 'border-bottom-width',
 			});
 			const rBorderLeft = initResizer(resizer.querySelector('.resize-border-left'), fieldInner, {
 				isVertical: false,
@@ -494,6 +536,7 @@ const Resizer = {
 				getModInitialValue: () => {
 					return parseInt(getComputedStyle(fieldInner).getPropertyValue('border-left-width'));
 				},
+				refInputID: 'border-left-width',
 			});
 
 			// Initialize border style locking.
@@ -510,37 +553,41 @@ const Resizer = {
 				getModInitialValue: () => {
 					return parseInt(getComputedStyle(fieldInner).getPropertyValue('border-top-left-radius'));
 				},
+				refInputID: 'border-top-left-radius',
 			});
 			const rCornerTopRight = initResizer(resizer.querySelector('.resize-corner-top-right'), fieldInner, {
 				isVertical: false,
 				isDiagonal: true,
-				inversePrimeAxis: true,
+				invertPrimeAxis: true,
 				modRatio: .25,
 				modStyle: 'border-top-right-radius',
 				getModInitialValue: () => {
 					return parseInt(getComputedStyle(fieldInner).getPropertyValue('border-top-right-radius'));
 				},
+				refInputID: 'border-top-right-radius',
 			});
 			const rCornerBottomRight = initResizer(resizer.querySelector('.resize-corner-bottom-right'), fieldInner, {
 				isVertical: true,
 				isDiagonal: true,
-				inversePrimeAxis: true,
-				inverseSecondaryAxis: true,
+				invertPrimeAxis: true,
+				invertSecondaryAxis: true,
 				modRatio: .25,
 				modStyle: 'border-bottom-right-radius',
 				getModInitialValue: () => {
 					return parseInt(getComputedStyle(fieldInner).getPropertyValue('border-bottom-right-radius'));
 				},
+				refInputID: 'border-bottom-right-radius',
 			});
 			const rCornerBottomLeft = initResizer(resizer.querySelector('.resize-corner-bottom-left'), fieldInner, {
 				isVertical: false,
 				isDiagonal: true,
-				inverseSecondaryAxis: true,
+				invertSecondaryAxis: true,
 				modRatio: .25,
 				modStyle: 'border-bottom-left-radius',
 				getModInitialValue: () => {
 					return parseInt(getComputedStyle(fieldInner).getPropertyValue('border-bottom-left-radius'));
 				},
+				refInputID: 'border-bottom-left-radius',
 			});
 
 			// Initialize corner style locking.

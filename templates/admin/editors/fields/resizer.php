@@ -11,7 +11,33 @@ if ( empty( $args ) ) {
 	return;
 }
 
-// See figma for example (add to ./.dev/.. after finalization).
+$hidden_fields = [
+	// Margins.
+	'margin-top'                 => __( 'Container Margin Top', 'snakebytes' ),
+	'margin-right'               => __( 'Container Margin Right', 'snakebytes' ),
+	'margin-bottom'              => __( 'Container Margin Bottom', 'snakebytes' ),
+	'margin-left'                => __( 'Container Margin Left', 'snakebytes' ),
+	// Paddings.
+	'padding-top'                => __( 'Container Padding Top', 'snakebytes' ),
+	'padding-right'              => __( 'Container Padding Right', 'snakebytes' ),
+	'padding-bottom'             => __( 'Container Padding Bottom', 'snakebytes' ),
+	'padding-left'               => __( 'Container Padding Left', 'snakebytes' ),
+	// Border Width.
+	'border-top-width'           => __( 'Container Border Top Width', 'snakebytes' ),
+	'border-right-width'         => __( 'Container Border Right Width', 'snakebytes' ),
+	'border-bottom-width'        => __( 'Container Border Bottom Width', 'snakebytes' ),
+	'border-left-width'          => __( 'Container Border Left Width', 'snakebytes' ),
+	// Border Color.
+	'border-top-color'           => __( 'Container Border Top Colour', 'snakebytes' ),
+	'border-right-color'         => __( 'Container Border Right Colour', 'snakebytes' ),
+	'border-bottom-color'        => __( 'Container Border Bottom Colour', 'snakebytes' ),
+	'border-left-color'          => __( 'Container Border Left Colour', 'snakebytes' ),
+	// Border Radius.
+	'border-top-right-radius'    => __( 'Container Border Radius Top Right', 'snakebytes' ),
+	'border-bottom-right-radius' => __( 'Container Border Radius Bottom Right', 'snakebytes' ),
+	'border-bottom-left-radius'  => __( 'Container Border Radius Bottom Left', 'snakebytes' ),
+	'border-top-left-radius'     => __( 'Container Border Radius Top Left', 'snakebytes' ),
+];
 
 ?>
 <div class="snakey-resizer">
@@ -21,7 +47,9 @@ if ( empty( $args ) ) {
 
 				<!-- Container margin resizer -->
 				<?php foreach ( [ 'top', 'right', 'bottom', 'left' ] as $side ) : ?>
-					<div class="resize-margin-<?php echo esc_attr( $side ); ?>"><div class="phantom-selector"></div></div>
+					<div class="resize-margin-<?php echo esc_attr( $side ); ?>" ref="margin-<?php echo esc_attr( $side ); ?>">
+						<div class="phantom-selector"></div>
+					</div>
 				<?php endforeach; ?>
 
 				<div class="field-container">
@@ -56,7 +84,9 @@ if ( empty( $args ) ) {
 
 						<!-- Field padding resizer -->
 						<?php foreach ( [ 'top', 'right', 'bottom', 'left' ] as $side ) : ?>
-							<div class="resize-padding-<?php echo esc_attr( $side ); ?>"><div class="phantom-selector"></div></div>
+							<div class="resize-padding-<?php echo esc_attr( $side ); ?>" ref="padding-<?php echo esc_attr( $side ); ?>">
+								<div class="phantom-selector"></div>
+							</div>
 						<?php endforeach; ?>
 
 						<!-- Placeholder field -->
@@ -70,19 +100,19 @@ if ( empty( $args ) ) {
 							<?php foreach ( [ 'top', 'right', 'bottom', 'left' ] as $side ) : ?>
 								<div class="micro-container border-controls border-<?php echo esc_attr( $side ); ?>">
 									<?php $mod_dir = in_array( $side, [ 'top', 'bottom' ], true ) ? 'vert' : 'horz'; ?>
-									<div class="control-button resize-border-<?php echo esc_attr( $side ); ?>">
+									<div class="control-button resize-border-<?php echo esc_attr( $side ); ?>" ref="border-<?php echo esc_attr( $side ); ?>-width">
 										<img
 												class="svg-image"
 												src="<?php echo esc_url( SNKFORMS_SVG_PATH . "width-mod-$mod_dir.svg" ); ?>"
 												alt="<?php esc_html_e( 'Border Width Modifier', 'snakebytes' ); ?>">
 									</div>
-									<div class="control-button select-color-<?php echo esc_attr( $side ); ?>">
+									<div class="control-button select-colour-<?php echo esc_attr( $side ); ?>" ref="border-<?php echo esc_attr( $side ); ?>-color">
 										<img
 												class="svg-image"
 												src="<?php echo esc_url( SNKFORMS_SVG_PATH . 'colour-mod.svg' ); ?>"
-												alt="<?php esc_html_e( 'Border Color Modifier', 'snakebytes' ); ?>">
+												alt="<?php esc_html_e( 'Border Colour Modifier', 'snakebytes' ); ?>">
 									</div>
-									<div class="control-button lock-border-style lock-border-style-<?php echo esc_attr( $side ); ?>">
+									<div class="control-button lock-border-style lock-border-style-<?php echo esc_attr( $side ); ?>" ref="border-lock">
 										<img
 												class="svg-image"
 												src="<?php echo esc_url( SNKFORMS_SVG_PATH . 'corner-lock.svg' ); ?>"
@@ -94,13 +124,13 @@ if ( empty( $args ) ) {
 							<!-- Corner controls -->
 							<?php foreach ( [ 'top-right', 'bottom-right', 'bottom-left', 'top-left' ] as $corner ) : ?>
 								<div class="micro-container border-corner-controls border-<?php echo esc_attr( $corner ); ?>">
-									<div class="control-button resize-corner-<?php echo esc_attr( $corner ); ?>">
+									<div class="control-button resize-corner-<?php echo esc_attr( $corner ); ?>" ref="border-<?php echo esc_attr( $side ); ?>-radius">
 										<img
 												class="svg-image"
 												src="<?php echo esc_url( SNKFORMS_SVG_PATH . "corner-mod-$corner.svg" ); ?>"
 												alt="<?php esc_html_e( 'Border Corner Radius Modifier', 'snakebytes' ); ?>">
 									</div>
-									<div class="control-button lock-corner-style">
+									<div class="control-button lock-corner-style" ref="border-radius-lock">
 										<img
 												class="svg-image"
 												src="<?php echo esc_url( SNKFORMS_SVG_PATH . 'corner-lock.svg' ); ?>"
@@ -138,11 +168,14 @@ if ( empty( $args ) ) {
 						<?php echo esc_html( $label ); ?>
 					</div>
 					<?php foreach ( [ 'min' => __( 'Min', 'snakebytes' ), 'base' => __( 'Base', 'snakebytes' ), 'max' => __( 'Max', 'snakebytes' ) ] as $dim => $dim_label ) : // phpcs:ignore ?>
-						<?php $name = $dim . '-' . $type; ?>
+						<?php $name = 'base' === $dim ? $type : ( $dim . '-' . $type ); ?>
 						<label for="<?php echo esc_attr( $name ); ?>">
 							<?php echo esc_html( $dim_label ); ?>
 						</label>
-						<input id="<?php echo esc_attr( $name ); ?>" name="<?php echo esc_attr( $name ); ?>" class="explicit-option" type="number" min="0">
+						<input
+								id="<?php echo esc_attr( $name ); ?>" name="<?php echo esc_attr( $name ); ?>"
+								class="explicit-option"
+								type="number" min="0" value="<?php echo esc_attr( $args[ $name ] ); ?>">
 					<?php endforeach; ?>
 				</div>
 			<?php endforeach; ?>
@@ -151,11 +184,13 @@ if ( empty( $args ) ) {
 
 	<!-- Input fields for visual editor -->
 	<div class="hidden resizer-fields">
-		<!-- Container Margin -->
-		<label for="resize-margin-top">
-			<?php esc_html_e( 'Container Margin Top', 'snakebytes' ); ?>
-		</label>
-		<input id="resize-margin-top" name="resize-margin-top" type="number" min="0">
-
+		<?php foreach ( $hidden_fields as $slug => $label ) : ?>
+			<label for="<?php echo esc_attr( $slug ); ?>">
+				<?php echo esc_html( $label ); ?>
+			</label>
+			<input
+					id="<?php echo esc_attr( $slug ); ?>" name="<?php echo esc_attr( $slug ); ?>"
+					type="number" min="0" max="5000" value="<?php echo esc_attr( $args[ $slug ] ); ?>">
+		<?php endforeach; ?>
 	</div>
 </div>
