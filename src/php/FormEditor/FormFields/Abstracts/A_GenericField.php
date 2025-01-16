@@ -73,21 +73,6 @@ abstract class A_GenericField implements I_FormField, I_FieldCustomizable {
 	}
 
 
-	// Protected Methods.
-
-	/**
-	 * Returns an array of field styles for 'styles' attributes.
-	 *
-	 * @param array $state Current state of the fields.
-	 *
-	 * @return array Array with categorised styles.
-	 */
-	public function prepare_field_styles( array $state ): array {
-
-
-		return [];
-	}
-
 	// Public Methods.
 
 	/**
