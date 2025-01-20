@@ -16,7 +16,7 @@ if ( empty( $args ) ) {
 	<?php if ( is_array( $args['fields'] ) ) : ?>
 		<?php foreach ( $args['fields'] as $field ) : ?>
 			<div class="single-field-selectable" name="<?php echo esc_attr( $field['name'] ); ?>" draggable="true">
-				<?php load_template( $field['template'] ); ?>
+				<?php $field['callback'](); ?>
 			</div>
 		<?php endforeach; ?>
 	<?php endif; ?>

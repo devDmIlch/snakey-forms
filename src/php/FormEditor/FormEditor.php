@@ -162,30 +162,13 @@ class FormEditor {
 			function ( $field ) {
 				return [
 					'name'     => $field->get_slug(),
-					'template' => $field->get_field_preview_template(),
+					'callback' => [ $field, 'get_field_preview' ],
 				];
 			},
 			$this->get_r_fields()
 		);
 
 		load_template( SNKFORMS_PLUGIN_TEMPLATES . 'admin/sections/field-shop.php', false, [ 'fields' => $template_args ] );
-	}
-
-	/**
-	 * Returns html with field customizer area template.
-	 *
-	 * @return array REST Request response.
-	 */
-	public function get_field_customizer(): array {
-
-		ob_start();
-		load_template( SNKFORMS_PLUGIN_TEMPLATES . 'admin/sections/field-customizer.php', true );
-		$html = ob_get_clean();
-
-		return [
-			'status' => 200,
-			'html'   => $html,
-		];
 	}
 
 	/**
