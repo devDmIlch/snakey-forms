@@ -8,6 +8,7 @@
 
 namespace SnakeyForms\FormEditor;
 
+use SnakeyForms\FormEditor\FormFields\Interfaces\I_FieldCustomizable;
 use SnakeyForms\FormEditor\FormFields\Interfaces\I_FormField;
 use SnakeyForms\FormEditor\FormFields\TextField;
 
@@ -24,13 +25,6 @@ class FormEditor {
 	 * @var I_FormField[] $r_fields
 	 */
 	private $r_fields;
-
-	/**
-	 * Array of existing form fields.
-	 *
-	 * @var array $f_fields
-	 */
-	private $f_fields;
 
 
 	// Protected Properties.
@@ -49,15 +43,6 @@ class FormEditor {
 		return $this->r_fields;
 	}
 
-	/**
-	 * Returns (and initializes) an array of form fields.
-	 *
-	 * @return array Array of form fields.
-	 */
-	protected function get_f_fields(): array {
-		return $this->f_fields;
-	}
-
 
 	// Initialization Methods.
 
@@ -66,8 +51,18 @@ class FormEditor {
 	 */
 	public function init(): void {
 		$this->get_r_fields();
+
+		// Register hooks.
+		$this->hooks();
 	}
 
+
+	/**
+	 * Initializes class hooks.
+	 */
+	protected function hooks(): void {
+		add_action( 'rest_api_init', [ $this, 'register_rest_routes' ] );
+	}
 
 	// Private Methods.
 
@@ -119,13 +114,6 @@ class FormEditor {
 	// Public Methods.
 
 	/**
-	 * Renders invisible input field for saving form content.
-	 */
-	public function render_input(): void {
-		load_template( SNKFORMS_PLUGIN_TEMPLATES . 'admin/form-input.php', false );
-	}
-
-	/**
 	 * Transforms form content in JSON format to regular HTML.
 	 *
 	 * @param int    $post_id   ID of the post.
@@ -137,24 +125,20 @@ class FormEditor {
 		// Parse selected fields data.
 		$content = empty( $form_json ) ? [] : json_decode( $form_json, true );
 
-		$fields = array_map(
-			function ( $field ) {
-				return [
-					'template' => $field['ref']->get_field_content_template(),
-					'state'    => $field['state'],
-				];
-			},
-			$this->parse_selected_field_states( $content, $this->r_fields )
-		);
+		ob_start();
+		foreach ( $this->parse_selected_field_states( $content, $this->r_fields ) as $field ) {
+			$field['ref']->get_field_content( $field['state'] );
+		}
+		$content = ob_get_clean();
 
 		// Prepare arguments for template to work with.
-		$template_args = [
+		$args = [
 			'form_id' => $post_id,
-			'fields'  => $fields,
+			'content' => $content,
 		];
 
 		ob_start();
-		load_template( SNKFORMS_PLUGIN_TEMPLATES . 'sections/form-container.php', false, $template_args );
+		load_template( SNKFORMS_PLUGIN_TEMPLATES . 'sections/form-container.php', false, $args );
 		return ob_get_clean();
 	}
 
@@ -164,26 +148,10 @@ class FormEditor {
 	 * @param string|null $content Existing content of the form.
 	 */
 	public function display_form_editor_content( ?string $content ): void {
-		// Parse selected fields data.
-		$content = empty( $content ) ? [] : json_decode( $content, true );
-
-		$template_args = array_map(
-			function ( $field ) {
-				return [
-					'template' => $field['ref']->get_field_proto_template(),
-					'state'    => $field['state'],
-					'props'    => wp_json_encode(
-						[
-							'type'  => $field['type'],
-							'state' => $field['state'],
-						]
-					),
-				];
-			},
-			$this->parse_selected_field_states( $content, $this->r_fields )
-		);
-
-		load_template( SNKFORMS_PLUGIN_TEMPLATES . 'admin/sections/form-content.php', false, [ 'fields' => $template_args ] );
+		// Load template for the editor content.
+		load_template( SNKFORMS_PLUGIN_TEMPLATES . 'admin/sections/form-content.php', false );
+		// Load template with input field for saving data.
+		load_template( SNKFORMS_PLUGIN_TEMPLATES . 'admin/sections/form-input.php', false, [ 'value' => $content ?? '' ] );
 	}
 
 	/**
@@ -224,18 +192,57 @@ class FormEditor {
 	 * Registers REST API endpoints for editor.
 	 */
 	public function register_rest_routes(): void {
+		// Register endpoint to retrieve fields.
+		foreach ( $this->get_r_fields() as $field ) {
+			// Default request Routes.
+			$routes = [
+				'get-field' => 'get_field_content',
+				'get-proto' => 'get_field_proto',
+			];
 
-		register_rest_route(
-			SNKFORMS_PREFIX . '/v1',
-			'/form-editor/get-customizer',
-			[
-				[
-					'methods'             => [ 'POST' ],
-					'callback'            => [ $this, 'get_field_customizer' ],
-					'permission_callback' => '__return_true',
-					'args'                => [],
-				],
-			]
-		);
+			// Check whether the field is customizable.
+			if ( $field instanceof I_FieldCustomizable ) {
+				$routes['get-editor'] = 'get_field_editor';
+			}
+
+			// Register routes.
+			foreach ( $routes as $name => $callback ) {
+				register_rest_route(
+					SNKFORMS_PREFIX . '/v1',
+					'/' . $name . '/' . $field->get_slug(),
+					[
+						[
+							'methods'             => [ 'POST' ],
+							'callback'            => function ( \WP_REST_Request $request ) use ( $field, $callback ) {
+								// Get request parameters.
+								$state = rest_sanitize_object( $request->get_param( 'state' ) );
+
+								ob_start();
+								[ $field, $callback ]( $state );
+								$html = ob_get_clean();
+
+								return [
+									'status' => 200,
+									'html'   => $html,
+								];
+							},
+							// TODO: Add proper verification to this function.
+							'permission_callback' => function ( \WP_REST_Request $request ) {
+								return true;
+							},
+							'args'                => [
+								[
+									'state' => [
+										'type'     => 'object',
+										'required' => true,
+									],
+								],
+							],
+						],
+					],
+					false
+				);
+			}
+		}
 	}
 }

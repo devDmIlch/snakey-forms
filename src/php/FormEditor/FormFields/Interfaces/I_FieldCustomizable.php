@@ -19,4 +19,12 @@ interface I_FieldCustomizable {
 	 * @return string Template name for field editor.
 	 */
 	public function get_field_editor_template(): string;
+
+
+	/**
+	 * Displays field editor content.
+	 *
+	 * @param array $state Field settings.
+	 */
+	public function get_field_editor( array $state ): void;
 }

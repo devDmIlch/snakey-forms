@@ -40,7 +40,7 @@ const formDirector = {
 		// Save form wrapper element to use later.
 		this.formDOMEl = formDOMEl;
 		// Find form fields containing within the wrapper.
-		this.formFields = Array.from(formDOMEl.querySelectorAll('.snkfrm-field')) ?? [];
+		this.formFields = [];
 		// Find shop fields available for user.
 		this.shopFields = Array.from(formDOMEl.querySelectorAll('.single-field-selectable')) ?? [];
 
@@ -48,6 +48,13 @@ const formDirector = {
 		this.inputField = formDOMEl.querySelector('.form-input');
 		// Find form content container.
 		this.formContent = formDOMEl.querySelector('#form-content');
+
+		// Load the fields using value in the input field.
+		if (this.inputField.value) {
+			for (const [index, field] of Object.entries(JSON.parse(this.inputField.value))) {
+				this.requestField(field.type, field.state, index, false);
+			}
+		}
 
 		// Initialize selected form fields.
 		this.formFields.forEach((field) => { this.initFieldDragging(field); this.initFormField(field) });
@@ -57,6 +64,61 @@ const formDirector = {
 		// Initialize placeholder.
 		this.placeholderEl = formDOMEl.querySelector('.form-placeholder');
 		this.initFieldDragging(this.placeholderEl);
+	},
+
+	/**
+	 * Calls endpoint to retrieve field html.
+	 *
+	 * @param fieldType Type of the field.
+	 * @param state     Current state of the field.
+	 * @param index     Position of the element that is supposed to be added. (default: -1, adds to the end)
+	 * @param update    Whether to update input field.
+	 */
+	requestField(fieldType, state, index = -1, update = true) {
+		axios.post('/wp-json/snkfrm/v1/get-proto/' + fieldType, { state: state }, {}).then((response) => {
+			// Create placeholder variable for the new element.
+			let newField;
+
+			// If the index exceeds total number of the element set it to -1, to add new element at the end.
+			if (index >= this.formFields.length) {
+				index = -1;
+			}
+
+			// Insert field at the end.
+			if (index < 0) {
+				this.placeholderEl.insertAdjacentHTML('beforebegin', response.data.html);
+				newField = this.placeholderEl.previousElementSibling;
+				// Push the field into array.
+				this.formFields.push(newField);
+			} else {
+				// Find the field with the correct index.
+				const relField = this.formFields[index];
+				// Insert new field element after hovered field.
+				relField.insertAdjacentHTML('beforebegin', response.data.html);
+				newField = relField.previousElementSibling;
+				// Insert element into array with references.
+				this.formFields.splice(index, 0, newField);
+			}
+
+			// Initialize new field.
+			this.initFormField(newField);
+			// Initialize dragging actions.
+			this.initFieldDragging(newField);
+
+			// Add properties to the field DOM element, so they can easily be referred to later.
+			newField.props = {
+				type: fieldType,
+				state: state,
+			};
+
+			// Optionally update the input field.
+			if (update) {
+				this.saveFields();
+			}
+		}).then((error) => {
+			// TODO: Add proper error handling.
+			console.log(error);
+		});
 	},
 
 	// Initializes selectable field from the shop.
@@ -81,7 +143,34 @@ const formDirector = {
 				},
 			};
 
-			axios.post('/wp-json/snkfrm/v1/admin/get-proto/' + fieldType, { state: fieldState.state }, {}).then((response) => {
+			// Get the correct position of the newly added element.
+			let newFieldPos = -1;
+			// Check if the field is dragged over other fields.
+			if (relField && !relField.isSameNode(this.placeholderEl)) {
+				// Get index of the hovered over field.
+				newFieldPos = this.getNodeArrayIndex(this.formFields, relField);
+
+				// Check if the field is placed in the 'after this field' position.
+				const relPos = this.getElementCursorRelPosition(relField, event);
+				// Check whether the element should be placed 'below' the hovered element.
+				if (Math.abs(relPos.x - 0.5) < this.vertThreshold) {
+					if (relPos.y > 0.5) {
+						++newFieldPos;
+					}
+				} else {
+					// Check whether the element should be placed 'to the right' of the hovered element.
+					if (relPos.x > 0.5) {
+						++newFieldPos;
+					}
+				}
+			}
+
+			// Request field from an endpoint.
+			this.requestField(fieldType, {name: fieldDefaultName}, newFieldPos);
+
+			return;
+
+			axios.post('/wp-json/snkfrm/v1/get-proto/' + fieldType, { state: fieldState.state }, {}).then((response) => {
 				// Remove loading class.
 				field.classList.remove('loading');
 				// Create placeholder variable for the new element.
@@ -259,11 +348,6 @@ const formDirector = {
 
 	// Initializes actions with the selected field.
 	initFormField(field) {
-		// Initialize the properties if they are supplied.
-		if (field.getAttribute('props')) {
-			field.props = JSON.parse(field.getAttribute('props'));
-		}
-
 		// Initialize field controls.
 		const fieldControls = field.querySelector('.proto-controls');
 		if (fieldControls) {
@@ -339,7 +423,7 @@ const formDirector = {
 		this.saveFields();
 
 		// Request new content for the field.
-		axios.post('/wp-json/snkfrm/v1/admin/get-proto/' + field.props.type, { state: state }, {}).then((response) => {
+		axios.post('/wp-json/snkfrm/v1/get-proto/' + field.props.type, { state: state }, {}).then((response) => {
 			// Create element from the received html.
 			const template = document.createElement('template');
 			template.innerHTML = response.data.html;

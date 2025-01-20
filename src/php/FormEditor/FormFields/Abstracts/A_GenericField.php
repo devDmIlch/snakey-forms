@@ -68,12 +68,53 @@ abstract class A_GenericField implements I_FormField, I_FieldCustomizable {
 	 * Initializes class hooks.
 	 */
 	protected function hooks(): void {
-
-		add_action( 'rest_api_init', [ $this, 'register_rest_routes' ] );
 	}
 
 
 	// Public Methods.
+
+	/**
+	 * Displays field prototype content.
+	 *
+	 * @param array $state Field settings.
+	 */
+	public function get_field_proto( array $state ): void {
+		// Get template location for the field.
+		$template = apply_filters( SNKFORMS_PREFIX . '_field_template_' . $this->field_slug, SNKFORMS_PLUGIN_TEMPLATES . 'admin/proto/text-field.php' );
+		// Render template content.
+		load_template( $template, false, $state );
+	}
+
+	/**
+	 * Displays field editor content.
+	 *
+	 * @param array $state Field settings.
+	 */
+	public function get_field_editor( array $state ): void {
+		// Get template location for the field.
+		$template = apply_filters( SNKFORMS_PREFIX . '_field_template_' . $this->field_slug, SNKFORMS_PLUGIN_TEMPLATES . 'admin/editors/text-field.php' );
+		// Render template content.
+		load_template( $template, false, $state );
+	}
+
+	/**
+	 * Displays field front-end content.
+	 *
+	 * @param array $state Field settings.
+	 */
+	public function get_field_content( array $state ): void {
+		// Get template location for the field.
+		$template = apply_filters( SNKFORMS_PREFIX . '_field_template_' . $this->field_slug, SNKFORMS_PLUGIN_TEMPLATES . 'fields/text-field.php' );
+		// Render template content.
+		load_template( $template, false, [ 'state' => $state ] );
+	}
+
+	/**
+	 * Displays field preview.
+	 */
+	public function get_field_preview(): void {
+
+	}
 
 	/**
 	 * Renders field content based on supplied REST $request parameters.
@@ -108,7 +149,7 @@ abstract class A_GenericField implements I_FormField, I_FieldCustomizable {
 		$state = rest_sanitize_object( $request->get_param( 'state' ) );
 
 		ob_start();
-		load_template( $this->get_field_proto_template(), false, [ 'state' => $state ] );
+		$this->get_field_proto( $state );
 		$html = ob_get_clean();
 
 		return [

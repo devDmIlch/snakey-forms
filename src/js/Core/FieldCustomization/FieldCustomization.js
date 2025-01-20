@@ -16,8 +16,6 @@ const FieldCustomization = {
 	closeCustomizerOnClick() {
 		// Add a check to close customizer upon clicking outside.
 		document.addEventListener('click', (e) => {
-			console.log('test');
-
 			// Check whether a user clicked referenced item.
 			if (this.prevReference !== null && this.prevReference.contains(e.target)) {
 				// Create new event as this one was aborted.
@@ -75,7 +73,7 @@ const FieldCustomization = {
 		this.handleUpdate = onUpdate;
 
 		// Do an endpoint call to request customization area.
-		axios.post('/wp-json/snkfrm/v1/admin/get-editor/' + fieldType, { state: fieldState }, {}).then((response) => {
+		axios.post('/wp-json/snkfrm/v1/get-editor/' + fieldType, { state: fieldState }, {}).then((response) => {
 			// Reset reference of the last loaded item.
 			this.prevReference = reference;
 

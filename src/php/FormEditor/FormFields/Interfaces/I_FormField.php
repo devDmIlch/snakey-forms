@@ -52,4 +52,23 @@ interface I_FormField {
 	 * @return string Template name for field prototype.
 	 */
 	public function get_field_proto_template(): string;
+
+	/**
+	 * Displays field prototype content.
+	 *
+	 * @param array $state Field settings.
+	 */
+	public function get_field_proto( array $state ): void;
+
+	/**
+	 * Displays field front-end content.
+	 *
+	 * @param array $state Field settings.
+	 */
+	public function get_field_content( array $state ): void;
+
+	/**
+	 * Displays field preview html.
+	 */
+	public function get_field_preview(): void;
 }
