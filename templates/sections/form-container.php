@@ -15,10 +15,9 @@ if ( empty( $args ) ) {
 ?>
 <form class="snakey-forms" name="<?php echo esc_attr( SNKFORMS_PREFIX . '_' . $args['form_id'] ); ?>">
 	<?php
-	if ( ! empty( $args['fields'] ) ) {
-		foreach ( $args['fields'] as $field ) {
-			load_template( $field['template'], false, $field['state'] ?? [] );
-		}
+	if ( ! empty( $args['content'] ) ) {
+		// TODO: Add proper escaping function.
+		echo $args['content'];
 		?>
 		<!-- TODO: Create functionality for 'Submit' button customization -->
 		<input type="submit" value="<?php esc_html_e( 'Submit', 'snakebytes' ); ?>">

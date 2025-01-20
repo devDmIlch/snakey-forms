@@ -271,8 +271,6 @@ class SnakeyForm {
 		// Get post data details.
 		$post_data = $this->get_extended_data( $post_obj->ID );
 
-		// Add input field.
-		$this->get_form_editor_obj()->render_input();
 		// Renders field shop.
 		$this->get_form_editor_obj()->display_field_shop();
 		// Renders content of the form.

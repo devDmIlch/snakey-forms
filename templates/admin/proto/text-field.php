@@ -12,7 +12,7 @@ if ( empty( $args ) ) {
 }
 
 ?>
-<div class="snkfrm-field snkfrm-proto is-customizable" draggable="true" name="<?php echo esc_attr( $args['state']['name'] ); ?>" props="<?php echo esc_attr( $args['props'] ?? '' ); ?>">
+<div class="snkfrm-field snkfrm-proto is-customizable" draggable="true" name="<?php echo esc_attr( $args['name'] ); ?>">
 	<div class="proto-controls">
 		<div class="action-button move-up">
 			<
@@ -24,13 +24,13 @@ if ( empty( $args ) ) {
 			x
 		</div>
 	</div>
-	<label for="<?php echo esc_attr( $args['state']['name'] ); ?>" style="<?php echo esc_attr( implode( ';', $args['state']['l-style'] ?? [] ) ); ?>">
-		<?php echo esc_html( $args['state']['label'] ?? $args['state']['name'] ); ?>
+	<label for="<?php echo esc_attr( $args['name'] ); ?>" style="<?php echo esc_attr( implode( ';', $args['l-style'] ?? [] ) ); ?>">
+		<?php echo esc_html( $args['label'] ?? $args['name'] ); ?>
 	</label>
-	<div	name="<?php echo esc_attr( $args['state']['name'] ); ?>" id="<?php echo esc_attr( $args['state']['name'] ); ?>"
-			type="text" class="<?php echo esc_attr( implode( ' ', $args['state']['class'] ?? [] ) . ' snk-field snk-field-proto' ); ?>"
-			style="<?php echo esc_attr( implode( ';', $args['state']['style'] ?? [] ) ); ?>"
-			placeholder="<?php echo esc_attr( $args['state']['placeholder'] ?? '' ); ?>"
-			value="<?php echo esc_attr( $args['state']['value'] ?? '' ); ?>"
+	<div	name="<?php echo esc_attr( $args['name'] ); ?>" id="<?php echo esc_attr( $args['name'] ); ?>"
+			type="text" class="<?php echo esc_attr( implode( ' ', $args['class'] ?? [] ) . ' snk-field snk-field-proto' ); ?>"
+			style="<?php echo esc_attr( implode( ';', $args['style'] ?? [] ) ); ?>"
+			placeholder="<?php echo esc_attr( $args['placeholder'] ?? '' ); ?>"
+			value="<?php echo esc_attr( $args['value'] ?? '' ); ?>"
 	></div>
 </div>
