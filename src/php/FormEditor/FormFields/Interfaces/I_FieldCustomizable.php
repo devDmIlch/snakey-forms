@@ -14,9 +14,9 @@ namespace SnakeyForms\FormEditor\FormFields\Interfaces;
 interface I_FieldCustomizable {
 
 	/**
-	 * Display field editor content.
+	 * Displays field editor content.
 	 *
-	 * @return string Template name for field editor.
+	 * @param array $state Field settings.
 	 */
-	public function get_field_editor_template(): string;
+	public function get_field_editor( array $state ): void;
 }

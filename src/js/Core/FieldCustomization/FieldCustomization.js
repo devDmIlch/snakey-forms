@@ -82,7 +82,7 @@ const FieldCustomization = {
 		this.handleUpdate = onUpdate;
 
 		// Do an endpoint call to request customization area.
-		axios.post('/wp-json/snkfrm/v1/admin/get-editor/' + fieldType, { state: fieldState }, {}).then((response) => {
+		axios.post('/wp-json/snkfrm/v1/get-editor/' + fieldType, { state: fieldState }, {}).then((response) => {
 			// Reset reference of the last loaded item.
 			this.prevReference = reference;
 
