@@ -1,0 +1,110 @@
+
+@use '../utils/_mixins.scss' as *;
+@use '../utils/_variable.scss' as *;
+
+.color-picker {
+	@include position(fixed, 500000, (top: 0, left: 0));
+	@include width($initial: 250px);
+	@include accent-box;
+
+	display: none;
+	background-color: $white;
+
+	&.shown {
+		display: initial;
+	}
+
+	.close-picker {
+		@include position(absolute, 100, (top: $dist-small, right: $dist-small));
+
+		cursor: pointer;
+	}
+
+	.selector-area {
+		@include position(relative);
+		@include width($initial: 100%);
+		aspect-ratio: 1 / 1;
+
+		.radial-selector {
+			@include position(absolute, 0, (top: 0, left: 0));
+			@include size(100%);
+
+			border-radius: 50%;
+			background:
+				conic-gradient(rgb(255, 0, 0), rgb(255, 255, 0), rgb(0, 255, 0), rgb(0, 255, 255), rgb(0, 0, 255), rgb(255, 0, 255), rgb(255, 0, 0));
+			cursor: pointer;
+		}
+
+		.radial-inner {
+			@include position(absolute, 10, (top: 50%, left: 50%));
+			@include size(75%);
+
+			border-radius: 50%;
+			background: $white;
+			transform: translate(-50%, -50%);
+		}
+
+		.hue-selector {
+			@include position(absolute, 10, (top: 50%, left: 50%));
+			@include size(50%);
+			@include accent-box;
+
+			cursor: crosshair;
+			transform: translate(-50%, -50%);
+		}
+
+		.hue-preview {
+			@include position(fixed, 100, (top: 0, left: 0));
+			@include size(30px);
+			@include accent-box;
+
+			display: none;
+
+			&.visible {
+				display: block;
+			}
+		}
+	}
+
+	.alpha-selector {
+		@include position(relative, auto);
+		@include width($initial: 100%);
+		@include height(30px);
+		@include margin((vert: $dist-medium));
+
+		cursor: crosshair;
+
+		&:before {
+			content: '';
+			@include position(absolute, -1);
+			@include size(100%);
+			@include bg-checkerboard;
+		}
+	}
+
+	.numeral-area {
+		@include flex($gap: $dist-small);
+
+		label {
+			@include font($size: 16px, $weight: 500);
+			@include padding((horz: $dist-small));
+		}
+
+		.val-area {
+			@include width($min: 0, $initial: 100%);
+			@include margin((all: 0));
+			@include font($size: 15px, $weight: 500);
+			@include inset-box();
+
+			-moz-appearance: textfield;
+
+			&::-webkit-outer-spin-button, &::-webkit-inner-spin-button {
+				-webkit-appearance: none;
+			}
+		}
+
+		.alpha-val {
+			@include width($initial: 50px);
+		}
+	}
+}

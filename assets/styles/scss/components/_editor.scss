@@ -348,6 +348,18 @@
 				}
 			}
 
+			// Change border color.
+			.border-colour {
+				cursor: pointer;
+
+				svg {
+					@include size(16px);
+
+					color: inherit;
+				}
+			}
+
+
 			.customize-small-screen {
 				display: none;
 			}

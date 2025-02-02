@@ -13,6 +13,9 @@ if ( empty( $args ) ) {
 
 ?>
 <div class="snkfrm-field-editor">
+	<div class="color-picker" style="width: 300px">
+
+	</div>
 	<?php
 	// Field Name.
 	load_template(

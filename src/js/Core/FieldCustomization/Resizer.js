@@ -1,3 +1,4 @@
+import ColorPicker from "./ColorPicker";
 
 const Resizer = {
 	init(resizer, onUpdate = null) {
@@ -113,7 +114,7 @@ const Resizer = {
 					draggedEl.setPointerCapture(e.pointerId);
 
 					// Save initial mouse position to reference during resizing.
-					const initialMousePos = {x: e.pageX, y: e.pageY};
+					const initialMousePos = {x: e.clientX, y: e.clientY};
 
 					// Save initial property value to reference during resizing.
 					let initialValue = getCurrentModValue();
@@ -122,7 +123,7 @@ const Resizer = {
 					currentMouseMoveAction = (e) => {
 						e.preventDefault();
 						// Get offset of the mouse relative to the element.
-						const mouseOffset = props.isVertical ? e.pageY - initialMousePos.y : e.pageX - initialMousePos.x;
+						const mouseOffset = props.isVertical ? e.clientY - initialMousePos.y : e.clientX - initialMousePos.x;
 						// Calculate value modifier based on the offset and properties.
 						const mouseOffsetMod = mouseOffset * (props.invertPrimeAxis ? -1 : 1) * (props.modRatio ?? 1);
 						// Find a new value.
@@ -131,7 +132,7 @@ const Resizer = {
 						// Do adjustment for diagonal resizing.
 						if (props.isDiagonal) {
 							// Get offset in alternative axis.
-							const altOffset = !props.isVertical ? e.pageY - initialMousePos.y : e.pageX - initialMousePos.x;
+							const altOffset = !props.isVertical ? e.clientY - initialMousePos.y : e.clientX - initialMousePos.x;
 							// Calculate value modifier based on the offset and properties.
 							const altOffsetMod = altOffset * (props.invertSecondaryAxis ? -1 : 1) * (props.modRatio ?? 1);
 							// Use fast approximation formula to get the distance.
@@ -180,6 +181,126 @@ const Resizer = {
 			}
 
 			/**
+			 * Initializes color changing mechanic for the element.
+			 *
+			 * @param trigger Draggable resizer element.
+			 * @param modEl   Modified element.
+			 * @param props   Object with parameters
+			 *
+			 * @return Object with color changing methods.
+			 **/
+			const initColorChanger = (trigger, modEl, props) => {
+				// Check if the trigger exists.
+				if (!trigger) {
+					return;
+				}
+
+				// Get referenced input element if ID was passed in properties.
+				const refInputEl = props.refInputID ? resizer.querySelector('#' + props.refInputID) : null;
+				// Create 'change' event variable for the trigger.
+				let onChange = null;
+
+				// Updates mod value with provided one.
+				const updateModValue = (value) => {
+					// Get the CSS-readable format of the color.
+					const cssColor = Array.isArray(value) ? ColorPicker.convertRGBAtoString(value) : value
+					// TODO: Add color verification (Note to Self: to ColorPicker object, there's no need to trash already bloated Resizer object even more).
+
+					// Modify target element style.
+					if (props.modStyle) {
+						modEl.style[props.modStyle] = cssColor;
+					}
+
+					// Optionally modify the trigger element.
+					if (props.modSelf && props.modSelfStyle) {
+						trigger.style[props.modSelfStyle] = cssColor;
+					}
+				}
+
+				// Updates mod style with provided value.
+				const updateModStyle = (value) => {
+					// Update target (and optionally trigger) with new modded value.
+					updateModValue(value);
+
+					// Set input value if input field exists.
+					if (refInputEl) {
+						// Update the value.
+						refInputEl.value = value;
+						// Dispatch event to trigger the field update.
+						refInputEl.dispatchEvent(new CustomEvent('change'));
+					}
+				}
+
+				// Get existing value of the modified element.
+				const getCurrentModValue = () => {
+					let value = 0;
+
+					if (props.modProp) {
+						value = modEl[props.modProp];
+					}
+					if (props.modStyleRef) {
+						value = modEl.style[props.modStyleRef];
+					}
+					if (props.getModInitialValue instanceof Function) {
+						value = props.getModInitialValue();
+					}
+
+					return value;
+				}
+
+				// Sets handler for 'resize' event.
+				const setChangeHandler = (callable) => {
+					onChange = callable;
+				}
+
+				// Removes handler for 'resize' event.
+				const removeChangeHandler = () => {
+					onChange = null;
+				}
+
+				// Set initial value for the option.
+				updateModValue(refInputEl.value);
+
+				// Mount the colour picker onto trigger.
+				ColorPicker.mount(trigger, ColorPicker.parseStringColor(getCurrentModValue()), resizer);
+
+				// Update colour value on custom event.
+				trigger.addEventListener('change', (e) => {
+					const stringValue = ColorPicker.convertRGBAtoString(e.detail.color);
+
+					// Update the style of the trigger element.
+					if (props.modSelf && (props.modSelfStyle || props.modStyle)) {
+						trigger.style[props.modSelfStyle ?? props.modStyle] = stringValue;
+					}
+
+					// Update style of the modified element.
+					if (props.modStyle) {
+						modEl.style[props.modStyle] = stringValue;
+					}
+
+					if (refInputEl) {
+						// Update input element value.
+						refInputEl.value = stringValue;
+						// Dispatch event to trigger the field update.
+						refInputEl.dispatchEvent(new CustomEvent('change'));
+					}
+
+					// Handle the 'change' event trigger.
+					if (onChange) {
+						onChange();
+					}
+				});
+
+				return {
+					updateStyle: updateModStyle,
+					getModValue: getCurrentModValue,
+					// Event Handlers.
+					setUpdateEventHandler: setChangeHandler,
+					removeUpdateEventHandler: removeChangeHandler,
+				};
+			}
+
+			/**
 			 * Initializes interlocking mechanics for an array of resizers.
 			 *
 			 * @param isLocked      Whether the interlocking is initially initialized.
@@ -187,7 +308,6 @@ const Resizer = {
 			 * @param styleControls Arrays of resizing objects.
 			 **/
 			const initLockGroup = (isLocked = false, lockControls = [], ...styleControls) => {
-
 				// Toggles locking for the group.
 				const toggleLockControls = (lockRef, unlock = isLocked) => {
 					// Toggle active lock flag.
@@ -238,6 +358,7 @@ const Resizer = {
 							return arrayEl[index];
 						});
 					};
+
 					// Add event to actuate lock.
 					lockEl.addEventListener('click', () => {
 						// Update lock with value based on relative index.
@@ -297,8 +418,8 @@ const Resizer = {
 						// Get position of the element on the page.
 						const elPos = element.getBoundingClientRect();
 						// Calculate absolute distance to the center of the element for each of the axis.
-						const xOffset = Math.abs(elPos.x + elPos.width / 2 - e.pageX);
-						const yOffset = Math.abs(elPos.y + elPos.height / 2 - e.pageY);
+						const xOffset = Math.abs(elPos.x + elPos.width / 2 - e.clientX);
+						const yOffset = Math.abs(elPos.y + elPos.height / 2 - e.clientY);
 						// Calculate distance to the cursor based on approximation formula.
 						const approxDist = (xOffset > yOffset) ? 1.4 * xOffset + yOffset : 1.4 * yOffset + xOffset;
 
@@ -539,11 +660,6 @@ const Resizer = {
 				refInputID: 'border-left-width',
 			});
 
-			// Initialize border style locking.
-			initLockGroup(false, resizer.querySelectorAll('.lock-border-style'),[
-				rBorderTop, rBorderRight, rBorderBottom, rBorderLeft
-			]);
-
 			// Border Corner Resizers.
 			const rCornerTopLeft = initResizer(resizer.querySelector('.resize-corner-top-left'), fieldInner, {
 				isVertical: true,
@@ -603,6 +719,25 @@ const Resizer = {
 			initControlScaling(resizer.querySelector('.border-controls.border-right'), fieldInner, 'offsetHeight');
 			initControlScaling(resizer.querySelector('.border-controls.border-bottom'), fieldInner, 'offsetWidth');
 			initControlScaling(resizer.querySelector('.border-controls.border-left'), fieldInner, 'offsetHeight');
+
+			// Border color changers.
+			const borderColorHandlers = ['top', 'right', 'bottom', 'left'].map((direction) => {
+				return initColorChanger(resizer.querySelector('.border-colour-' + direction), fieldInner, {
+					modSelf: true,
+					modSelfStyle: 'color',
+					modStyle: 'border-' + direction + '-color',
+					getModInitialValue: () => {
+						return getComputedStyle(fieldInner).getPropertyValue('border-' + direction + '-color');
+					},
+					refInputID: 'border-' + direction + '-color',
+				});
+			});
+
+			// Initialize border style locking.
+			initLockGroup(false, resizer.querySelectorAll('.lock-border-style'),[
+				rBorderTop, rBorderRight, rBorderBottom, rBorderLeft
+			], borderColorHandlers);
+
 		}
 
 		initFieldResizeElements();

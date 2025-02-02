@@ -43,7 +43,7 @@ $inner_styles = implode(
 	'; ',
 	array_map(
 		function ( $value, $key ) : string {
-			return $key . ': ' . $value . 'px';
+			return $key . ': ' . ( is_numeric( $value ) ? $value . 'px' : $value );
 		},
 		$inner_styles,
 		array_keys( $inner_styles )

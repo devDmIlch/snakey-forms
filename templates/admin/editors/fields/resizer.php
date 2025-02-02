@@ -11,7 +11,7 @@ if ( empty( $args ) ) {
 	return;
 }
 
-$hidden_fields = [
+$hidden_numeric_fields = [
 	// Margins.
 	'margin-top'                 => __( 'Container Margin Top', 'snakebytes' ),
 	'margin-right'               => __( 'Container Margin Right', 'snakebytes' ),
@@ -27,16 +27,19 @@ $hidden_fields = [
 	'border-right-width'         => __( 'Container Border Right Width', 'snakebytes' ),
 	'border-bottom-width'        => __( 'Container Border Bottom Width', 'snakebytes' ),
 	'border-left-width'          => __( 'Container Border Left Width', 'snakebytes' ),
-	// Border Color.
-	'border-top-color'           => __( 'Container Border Top Colour', 'snakebytes' ),
-	'border-right-color'         => __( 'Container Border Right Colour', 'snakebytes' ),
-	'border-bottom-color'        => __( 'Container Border Bottom Colour', 'snakebytes' ),
-	'border-left-color'          => __( 'Container Border Left Colour', 'snakebytes' ),
 	// Border Radius.
 	'border-top-right-radius'    => __( 'Container Border Radius Top Right', 'snakebytes' ),
 	'border-bottom-right-radius' => __( 'Container Border Radius Bottom Right', 'snakebytes' ),
 	'border-bottom-left-radius'  => __( 'Container Border Radius Bottom Left', 'snakebytes' ),
 	'border-top-left-radius'     => __( 'Container Border Radius Top Left', 'snakebytes' ),
+];
+
+$hidden_text_fields = [
+	// Border Color.
+	'border-top-color'    => __( 'Container Border Top Colour', 'snakebytes' ),
+	'border-right-color'  => __( 'Container Border Right Colour', 'snakebytes' ),
+	'border-bottom-color' => __( 'Container Border Bottom Colour', 'snakebytes' ),
+	'border-left-color'   => __( 'Container Border Left Colour', 'snakebytes' ),
 ];
 
 ?>
@@ -106,11 +109,8 @@ $hidden_fields = [
 												src="<?php echo esc_url( SNKFORMS_SVG_PATH . "width-mod-$mod_dir.svg" ); ?>"
 												alt="<?php esc_html_e( 'Border Width Modifier', 'snakebytes' ); ?>">
 									</div>
-									<div class="control-button select-colour-<?php echo esc_attr( $side ); ?>" ref="border-<?php echo esc_attr( $side ); ?>-color">
-										<img
-												class="svg-image"
-												src="<?php echo esc_url( SNKFORMS_SVG_PATH . 'colour-mod.svg' ); ?>"
-												alt="<?php esc_html_e( 'Border Colour Modifier', 'snakebytes' ); ?>">
+									<div class="control-button border-colour border-colour-<?php echo esc_attr( $side ); ?>" ref="border-<?php echo esc_attr( $side ); ?>-color">
+										<?php include SNKFORMS_PLUGIN_PATH . '/assets/images/svg/colour-mod.svg'; ?>
 									</div>
 									<div class="control-button lock-border-style lock-border-style-<?php echo esc_attr( $side ); ?>" ref="border-lock">
 										<img
@@ -184,13 +184,21 @@ $hidden_fields = [
 
 	<!-- Input fields for visual editor -->
 	<div class="hidden resizer-fields">
-		<?php foreach ( $hidden_fields as $slug => $label ) : ?>
+		<?php foreach ( $hidden_numeric_fields as $slug => $label ) : ?>
 			<label for="<?php echo esc_attr( $slug ); ?>">
 				<?php echo esc_html( $label ); ?>
 			</label>
 			<input
 					id="<?php echo esc_attr( $slug ); ?>" name="<?php echo esc_attr( $slug ); ?>"
 					type="number" min="0" max="5000" value="<?php echo esc_attr( $args[ $slug ] ); ?>">
+		<?php endforeach; ?>
+		<?php foreach ( $hidden_text_fields as $slug => $label ) : ?>
+			<label for="<?php echo esc_attr( $slug ); ?>">
+				<?php echo esc_html( $label ); ?>
+			</label>
+			<input
+					id="<?php echo esc_attr( $slug ); ?>" name="<?php echo esc_attr( $slug ); ?>"
+					type="text" value="<?php echo esc_attr( $args[ $slug ] ); ?>">
 		<?php endforeach; ?>
 	</div>
 </div>
