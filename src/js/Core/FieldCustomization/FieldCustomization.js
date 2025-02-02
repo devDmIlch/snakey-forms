@@ -1,5 +1,8 @@
 
+// External dependencies.
 import axios from "axios";
+// Internal dependencies.
+import Resizer from "./Resizer";
 
 const FieldCustomization = {
 	prevReference: null,
@@ -54,6 +57,12 @@ const FieldCustomization = {
 				this.handleUpdate(this.state);
 			}
 		}));
+
+		// Initialize Resizer.
+		const resizer = this.customizer.querySelector('.snakey-resizer');
+		if (resizer) {
+			Resizer.init(resizer);
+		}
 	},
 
 	callCustomizer(fieldType, fieldState, reference = null, onUpdate = null) {

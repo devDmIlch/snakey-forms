@@ -3,6 +3,7 @@
 @use 'layout/_wrappers.scss';
 
 // Components.
+@use 'components/_color-picker.scss';
 @use 'components/_editor.scss';
 @use 'components/_fields.scss';
 @use 'components/_protos.scss';

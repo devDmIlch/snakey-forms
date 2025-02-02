@@ -3,10 +3,411 @@
 @use '../utils/_variable.scss' as *;
 
 .snk-field-customizer {
-	@include position(fixed, $z-index: 100, $coords: (top: calc(var(--wp-admin--admin-bar--height) + $dist-medium), right: $dist-medium));
+	@include position(fixed, $z-index: 100, $coords: (top: calc(var(--wp-admin--admin-bar--height) + #{$dist-large}), right: $dist-immense));
+	@include width($min: 400px, $max: 90vw);
+	@include height($max: 60vh);
 
 	padding: $dist-small;
 	border-top: $border-transparent;
 	border-bottom: $border-transparent;
 	background-color: $white;
+	box-shadow: $shadow-simple;
+}
+
+// Resizer.
+
+.snakey-resizer {
+
+	.field-visual-editor-wrap {
+		@include margin((vert: $dist-medium));
+		@include padding((all: $dist-small));
+		@include border($border-simple, $radius-small);
+
+		.field-visual-editor {
+			@include position(relative);
+			@include width($initial: max-content);
+		}
+
+		.field-visual-editor-bg {
+			@include bg-checkerboard();
+		}
+	}
+
+	// Margin Resize.
+
+	.resize-margin-top, .resize-margin-bottom, .resize-margin-right, .resize-margin-left {
+		.phantom-selector {
+			@include position(absolute);
+			@include size(100%);
+
+			outline: $border-transparent;
+			transition: outline-color $time-fast;
+
+			&:hover {
+				outline: $border-margin-resizer;
+			}
+		}
+	}
+
+	.resize-margin-top, .resize-margin-bottom {
+		@include coordinates((left: 0));
+		@include width($initial: 100%);
+		@include height($initial: 0);
+
+		cursor: s-resize;
+
+		.phantom-selector {
+			@include height($min: 2px);
+		}
+	}
+
+	.resize-margin-right, .resize-margin-left {
+		@include coordinates((top: 0));
+		@include width($initial: 0);
+		@include height($initial: 100%);
+
+		cursor: w-resize;
+
+		.phantom-selector {
+			@include width($min: 2px);
+		}
+	}
+
+	@each $side, $reverse in (top bottom, right left, bottom top, left right) {
+		.resize-margin-#{$side} {
+			@include position(absolute, 0, (#{$side}: -2px));
+
+			.phantom-selector {
+				@include coordinates((#{$reverse}: -2px));
+			}
+		}
+	}
+
+	.field-container {
+		@include position(relative);
+		@include width($initial: max-content);
+		@include height($min: 28px);
+
+		.field-label {
+			@include padding((horz: 0));
+			@include border(none);
+
+			background: none;
+			box-shadow: none;
+		}
+
+		.container-controls {
+			@include position(absolute, 5, (bottom: 100%, left: 100%));
+			@include flex($gap: $dist-tiny);
+			@include padding((all: $dist-tiny));
+
+			.label-orientation {
+				@include flex();
+			}
+
+			.svg-image {
+				@include size(20px);
+
+				cursor: pointer;
+			}
+		}
+
+
+		.field-inner {
+			@include position(relative);
+			@include border($border-simple, $radius-small);
+
+			.field-placeholder {
+				@include position(relative, 3);
+				@include width($initial: -webkit-fill-available);
+				@include height($initial: inherit);
+				@include margin((horz: 0));
+				@include padding((horz: 0));
+				@include border(none);
+
+				background: none;
+				box-shadow: none;
+			}
+
+			// Resize Field.
+
+			.resize-horizontal {
+				@include position(absolute, 10, (top: 0, right: -2px));
+				@include width($initial: 3px);
+				@include height($initial: 100%);
+
+				cursor: w-resize;
+				transition: background-color $time-fast;
+
+				&:hover {
+					background-color: $black;
+				}
+			}
+
+			.resize-vertical {
+				@include position(absolute, 10, (left: 0, bottom: -2px));
+				@include width($initial: 100%);
+				@include height($initial: 3px);
+
+				cursor: s-resize;
+				transition: background-color $time-fast;
+
+				&:hover {
+					background-color: $black;
+				}
+			}
+
+			// Padding Resize.
+
+			.resize-padding-top, .resize-padding-bottom, .resize-padding-right, .resize-padding-left {
+				.phantom-selector {
+					@include position(absolute);
+					@include size(100%);
+
+					outline: $border-transparent;
+					transition: outline-color $time-fast;
+
+					&:hover {
+						outline: $border-padding-resizer;
+					}
+				}
+			}
+
+			.resize-padding-right, .resize-padding-left {
+				@include width($initial: 0);
+				@include height($initial: 100%);
+
+				cursor: ew-resize;
+
+				.phantom-selector {
+					@include width($min: 2px);
+				}
+			}
+
+			.resize-padding-top, .resize-padding-bottom {
+				@include width($initial: 100%);
+				@include height($initial: 0);
+
+				cursor: ns-resize;
+
+				.phantom-selector {
+					@include height($min: 2px);
+				}
+			}
+
+			@each $side, $sidePar in (top left, right top, bottom left, left top) {
+				.resize-padding-#{$side} {
+					@include position(absolute, 5, (#{$side}: 0, #{$sidePar}: 0));
+
+					.phantom-selector {
+						@include coordinates((#{$side}: 0));
+					}
+				}
+			}
+
+			// Resize Border.
+
+			.field-border {
+				@include position(absolute, 0, (top: 0, right: 0));
+				@include size(100%);
+
+				.svg-image {
+					@include size(16px);
+				}
+
+				.lock-corner-style, .lock-border-style {
+					opacity: .5;
+					transition: $time-fast;
+					cursor: pointer;
+
+					&.is-locked {
+						opacity: 1;
+					}
+				}
+
+				.micro-container {
+					@include position(absolute, 10);
+
+					& > div {
+						@include flex();
+					}
+				}
+
+				$corner-props:
+					top-right (bottom: 100%, left: 100%) nesw-resize translate(-10px, 10px),
+					bottom-right (top: 100%, left: 100%) nwse-resize translate(-10px, -10px),
+					bottom-left (top: 100%, right: 100%) nesw-resize translate(10px, -10px),
+					top-left (bottom: 100%, right: 100%) nwse-resize translate(10px, 10px);
+
+				@each $corner, $coords, $cursor, $transform in $corner-props {
+					.border-#{$corner} {
+						@include coordinates($coords);
+						@include flex($gap: $dist-tiny);
+
+						.resize-corner-#{$corner} {
+							cursor: $cursor;
+						}
+
+						.control-button {
+							transform: $transform;
+						}
+					}
+				}
+
+				.border-top {
+					@include coordinates((bottom: calc(100% + #{$dist-tiny}), left: 50%));
+					@include flex($gap: $dist-tiny, $dir: row);
+					transform: translateX(-50%);
+
+					&.compact {
+						flex-direction: column;
+					}
+
+					.control-button {
+						transform: translateY(10px) scale(.8);
+					}
+
+					.resize-border-top {
+						cursor: ns-resize;
+					}
+				}
+				.border-right {
+					@include coordinates((left: calc(100% + #{$dist-tiny}), bottom: 50%));
+					@include flex($gap: $dist-tiny, $dir: column);
+					transform: translateY(50%);
+
+					&.compact {
+						flex-direction: row;
+					}
+
+					.control-button {
+						transform: translateX(-10px) scale(.8);
+					}
+
+					.resize-border-right {
+						cursor: ew-resize;
+					}
+				}
+				.border-bottom {
+					@include coordinates((top: calc(100% + #{$dist-tiny}), right: 50%));
+					@include flex($gap: $dist-tiny, $dir: row);
+					transform: translateX(50%);
+
+					&.compact {
+						flex-direction: column;
+					}
+
+					.control-button {
+						 transform: translateY(-10px) scale(.8);
+					}
+
+					.resize-border-bottom {
+						cursor: ns-resize;
+					}
+				}
+				.border-left {
+					@include coordinates((right: calc(100% + #{$dist-tiny}), top: 50%));
+					@include flex($gap: $dist-tiny, $dir: column);
+					transform: translateY(-50%);
+
+					&.compact {
+						flex-direction: row;
+					}
+
+					.control-button {
+						transform: translateX(10px) scale(.8);
+					}
+
+					.resize-border-left {
+						cursor: ew-resize;
+					}
+				}
+
+				.border-controls, .border-corner-controls {
+					opacity: 0;
+					transition: $time-fast;
+					pointer-events: none;
+
+					.control-button {
+						transition: $time-fast;
+					}
+
+					&.is-displayed {
+						opacity: 1;
+						pointer-events: all;
+
+						.control-button {
+							transform: translateY(0) translateX(0) scale(1);
+						}
+					}
+
+					&.hide {
+						opacity: 0;
+						pointer-events: none;
+					}
+				}
+			}
+
+			// Change border color.
+			.border-colour {
+				cursor: pointer;
+
+				svg {
+					@include size(16px);
+
+					color: inherit;
+				}
+			}
+
+
+			.customize-small-screen {
+				display: none;
+			}
+		}
+	}
+
+	.adv-options {
+		@include position(relative);
+
+		.adv-options-trigger {
+			@include padding((vert: $dist-tiny, horz: $dist-small));
+			@include border($border-simple, $radius-small);
+		}
+
+		.adv-options-target {
+			@include position(absolute, 10, (top: calc(100% + #{$dist-small})));
+			@include width($initial: -webkit-fill-available);
+			@include padding((all: $dist-tiny));
+			@include border($border-simple, $radius-small);
+
+			background-color: $white;
+		}
+	}
+}
+
+.explicit-options-list {
+	.section-text {
+		@include font(14px, $line-height: 1.4, $weight: 500);
+	}
+
+	.options-section {
+		@include flex($dir: column);
+		@include padding((all: $dist-tiny));
+		@include margin((bottom: $dist-small));
+		@include border($border-simple, $radius-small);
+	}
+
+	.explicit-option {
+		@include height($min: unset);
+		@include margin((bottom: $dist-tiny));
+		@include font(13px, $line-height: 1.2);
+		@include border(none, 0);
+
+		border-bottom: $border-simple;
+
+		&:focus, &:hover {
+			border-color: $navy;
+			box-shadow: none;
+		}
+	}
 }

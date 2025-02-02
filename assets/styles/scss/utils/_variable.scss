@@ -3,25 +3,34 @@
 $black: #333;
 $gray: #aaa;
 $lgray: #cecece;
+$dwhite: #f3f3f3;
 $white: #fff;
+
+$navy: #0f0f6d;
 
 // Standardized Distances.
 $dist-step: 3px;
-$dist-tiny:   $dist-step;
-$dist-small:  $dist-step * 2;
-$dist-medium: $dist-step * 4;
-$dist-large:  $dist-step * 8;
+$dist-tiny:    $dist-step;
+$dist-small:   $dist-step * 2;
+$dist-medium:  $dist-step * 4;
+$dist-large:   $dist-step * 8;
+$dist-immense: $dist-step * 16;
 
 $dist-sub-step: $dist-step / 2;
 
 // Border Styles.
+$border-wide: 4px solid $lgray;
 $border-simple: 1px solid $gray;
 $border-transparent: 1px solid transparent;
+
+$border-padding-resizer: 1px dashed #336633;
+$border-margin-resizer: 1px dashed #993333;
 
 // Border Radius Values.
 $radius-small: $dist-tiny;
 
 // Box Shadows.
+$shadow-distinct: 0 0 24px -6px $black;
 $shadow-simple: 0 0 8px -4px $gray;
 
 // Transition Time.

@@ -13,6 +13,9 @@ if ( empty( $args ) ) {
 
 ?>
 <div class="snkfrm-field-editor">
+	<div class="color-picker" style="width: 300px">
+
+	</div>
 	<?php
 	// Field Name.
 	load_template(
@@ -24,5 +27,8 @@ if ( empty( $args ) ) {
 			'value' => $args['name'],
 		]
 	);
+
+	// Field Customizer.
+	load_template( SNKFORMS_PLUGIN_TEMPLATES . 'admin/editors/fields/resizer.php', false, $args );
 	?>
 </div>
